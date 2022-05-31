@@ -113,16 +113,16 @@ class Cactus extends Transparent{
 						if($ev->isCancelled()){
 							break;
 						}
-						$this->position->getWorld()->setBlock($b->position, $ev->getNewState());
+						$this->position->getWorld()->setBlock($b->position, $ev->getNewState(), false);
 					}else{
 						break;
 					}
 				}
 				$this->age = 0;
-				$this->position->getWorld()->setBlock($this->position, $this);
+				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}else{
 				++$this->age;
-				$this->position->getWorld()->setBlock($this->position, $this);
+				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}
 		}
 	}

@@ -23,15 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\command\defaults;
 
+use function count;
+use function implode;
+use pocketmine\player\Player;
+use pocketmine\utils\TextFormat;
 use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
-use pocketmine\player\Player;
-use pocketmine\utils\TextFormat;
-use function count;
-use function implode;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
 
 class SayCommand extends VanillaCommand{
 
@@ -53,10 +53,7 @@ class SayCommand extends VanillaCommand{
 			throw new InvalidCommandSyntaxException();
 		}
 
-		$sender->getServer()->broadcastMessage(KnownTranslationFactory::chat_type_announcement(
-			$sender instanceof Player ? $sender->getDisplayName() : ($sender instanceof ConsoleCommandSender ? "Server" : $sender->getName()),
-			implode(" ", $args)
-		)->prefix(TextFormat::LIGHT_PURPLE));
+		$sender->getServer()->broadcastMessage(" §e" . implode(" ", $args));
 		return true;
 	}
 }

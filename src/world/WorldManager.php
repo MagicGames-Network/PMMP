@@ -23,36 +23,36 @@ declare(strict_types=1);
 
 namespace pocketmine\world;
 
+use function trim;
+use function count;
+use function floor;
+use function round;
+use function assert;
+use function intdiv;
+use function strval;
+use function implode;
+use function sprintf;
+use pocketmine\Server;
+use function microtime;
+use function array_keys;
+use function array_shift;
+use Webmozart\PathUtil\Path;
 use pocketmine\entity\Entity;
+use function iterator_to_array;
+use pocketmine\timings\Timings;
+use pocketmine\world\format\Chunk;
+use pocketmine\player\ChunkSelector;
 use pocketmine\event\world\WorldInitEvent;
 use pocketmine\event\world\WorldLoadEvent;
 use pocketmine\event\world\WorldUnloadEvent;
 use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\player\ChunkSelector;
-use pocketmine\Server;
-use pocketmine\timings\Timings;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\format\io\exception\CorruptedWorldException;
-use pocketmine\world\format\io\exception\UnsupportedWorldFormatException;
 use pocketmine\world\format\io\FormatConverter;
+use pocketmine\world\generator\GeneratorManager;
 use pocketmine\world\format\io\WorldProviderManager;
 use pocketmine\world\format\io\WritableWorldProvider;
-use pocketmine\world\generator\GeneratorManager;
 use pocketmine\world\generator\InvalidGeneratorOptionsException;
-use Webmozart\PathUtil\Path;
-use function array_keys;
-use function array_shift;
-use function assert;
-use function count;
-use function floor;
-use function implode;
-use function intdiv;
-use function iterator_to_array;
-use function microtime;
-use function round;
-use function sprintf;
-use function strval;
-use function trim;
+use pocketmine\world\format\io\exception\CorruptedWorldException;
+use pocketmine\world\format\io\exception\UnsupportedWorldFormatException;
 
 class WorldManager{
 	/** @var string */

@@ -26,27 +26,27 @@ declare(strict_types=1);
  */
 namespace pocketmine\block;
 
-use pocketmine\block\tile\Spawnable;
-use pocketmine\block\tile\Tile;
-use pocketmine\block\utils\InvalidBlockStateException;
-use pocketmine\entity\Entity;
-use pocketmine\item\enchantment\VanillaEnchantments;
-use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
-use pocketmine\math\Axis;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\RayTraceResult;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\player\Player;
-use pocketmine\world\BlockTransaction;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\Position;
-use pocketmine\world\World;
-use function assert;
 use function count;
+use function assert;
 use function dechex;
 use const PHP_INT_MAX;
+use pocketmine\item\Item;
+use pocketmine\math\Axis;
+use pocketmine\world\World;
+use pocketmine\math\Vector3;
+use pocketmine\entity\Entity;
+use pocketmine\player\Player;
+use pocketmine\world\Position;
+use pocketmine\block\tile\Tile;
+use pocketmine\item\ItemFactory;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\world\format\Chunk;
+use pocketmine\math\RayTraceResult;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\block\tile\Spawnable;
+use pocketmine\world\BlockTransaction;
+use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\block\utils\InvalidBlockStateException;
 
 class Block{
 	public const INTERNAL_METADATA_BITS = 4;

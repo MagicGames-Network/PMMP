@@ -23,25 +23,24 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\event\block\BlockGrowEvent;
+use function mt_rand;
+use function array_rand;
 use pocketmine\item\Item;
 use pocketmine\math\Facing;
-use function array_rand;
-use function mt_rand;
+use pocketmine\event\block\BlockGrowEvent;
 
 abstract class Stem extends Crops{
 
 	abstract protected function getPlant() : Block;
 
 	public function onRandomTick() : void{
-		if(mt_rand(0, 2) === 1){
 			if($this->age < 7){
 				$block = clone $this;
 				++$block->age;
 				$ev = new BlockGrowEvent($this, $block);
 				$ev->call();
 				if(!$ev->isCancelled()){
-					$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+					$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 				}
 			}else{
 				$grow = $this->getPlant();
@@ -57,11 +56,10 @@ abstract class Stem extends Crops{
 					$ev = new BlockGrowEvent($side, $grow);
 					$ev->call();
 					if(!$ev->isCancelled()){
-						$this->position->getWorld()->setBlock($side->position, $ev->getNewState());
+						$this->position->getWorld()->setBlock($side->position, $ev->getNewState(), false);
 					}
 				}
 			}
-		}
 	}
 
 	public function getDropsForCompatibleTool(Item $item) : array{

@@ -121,7 +121,7 @@ class FlowerPot extends Flowable{
 
 		$this->setPlant($plant);
 		$item->pop();
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 
 		return true;
 	}

@@ -23,23 +23,23 @@ declare(strict_types=1);
 
 namespace pocketmine\entity\object;
 
-use pocketmine\entity\animation\ItemEntityStackSizeChangeAnimation;
-use pocketmine\entity\Entity;
-use pocketmine\entity\EntitySizeInfo;
-use pocketmine\entity\Location;
-use pocketmine\event\entity\EntityItemPickupEvent;
-use pocketmine\event\entity\ItemDespawnEvent;
-use pocketmine\event\entity\ItemMergeEvent;
-use pocketmine\event\entity\ItemSpawnEvent;
+use function max;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\entity\Entity;
+use pocketmine\player\Player;
+use pocketmine\entity\Location;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\entity\EntitySizeInfo;
+use pocketmine\event\entity\ItemMergeEvent;
+use pocketmine\event\entity\ItemSpawnEvent;
+use pocketmine\event\entity\ItemDespawnEvent;
+use pocketmine\event\entity\EntityItemPickupEvent;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\AddItemActorPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
+use pocketmine\entity\animation\ItemEntityStackSizeChangeAnimation;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
-use pocketmine\player\Player;
-use function max;
 
 class ItemEntity extends Entity{
 
@@ -55,7 +55,7 @@ class ItemEntity extends Entity{
 	/** @var string */
 	protected $thrower = "";
 	/** @var int */
-	protected $pickupDelay = 0;
+	protected $pickupDelay = 50;
 	/** @var Item */
 	protected $item;
 
@@ -186,6 +186,11 @@ class ItemEntity extends Entity{
 		return true;
 	}
 
+	public function canBeMovedByCurrents(): bool
+	{
+		return true;
+	}
+
 	public function saveNBT() : CompoundTag{
 		$nbt = parent::saveNBT();
 		$nbt->setTag("Item", $this->item->nbtSerialize());
@@ -224,7 +229,7 @@ class ItemEntity extends Entity{
 	}
 
 	public function setPickupDelay(int $delay) : void{
-		$this->pickupDelay = $delay;
+		$this->pickupDelay = 100;
 	}
 
 	/**

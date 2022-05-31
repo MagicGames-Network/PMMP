@@ -61,14 +61,14 @@ class Sugarcane extends Flowable{
 				if($ev->isCancelled()){
 					break;
 				}
-				$this->position->getWorld()->setBlock($b->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($b->position, $ev->getNewState(), false);
 				$grew = true;
 			}else{
 				break;
 			}
 		}
 		$this->age = 0;
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		return $grew;
 	}
 
@@ -112,7 +112,7 @@ class Sugarcane extends Flowable{
 				$this->grow();
 			}else{
 				++$this->age;
-				$this->position->getWorld()->setBlock($this->position, $this);
+				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}
 		}
 	}

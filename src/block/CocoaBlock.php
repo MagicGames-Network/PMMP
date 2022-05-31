@@ -127,7 +127,7 @@ class CocoaBlock extends Transparent{
 			$ev = new BlockGrowEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 				return true;
 			}
 		}

@@ -90,7 +90,7 @@ class DaylightSensor extends Transparent{
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$this->inverted = !$this->inverted;
 		$this->signalStrength = $this->recalculateSignalStrength();
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		return true;
 	}
 
@@ -98,7 +98,7 @@ class DaylightSensor extends Transparent{
 		$signalStrength = $this->recalculateSignalStrength();
 		if($this->signalStrength !== $signalStrength){
 			$this->signalStrength = $signalStrength;
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 		}
 		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, 20);
 	}

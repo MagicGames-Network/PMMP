@@ -110,7 +110,7 @@ class TNT extends Opaque{
 	}
 
 	public function ignite(int $fuse = 80) : void{
-		$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR());
+		$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR(), false);
 
 		$mot = (new Random())->nextSignedFloat() * M_PI * 2;
 

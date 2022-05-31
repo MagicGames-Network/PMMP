@@ -46,7 +46,7 @@ class Effect{
 		protected Color $color,
 		protected bool $bad = false,
 		private int $defaultDuration = 600,
-		protected bool $hasBubbles = true
+		protected bool $hasBubbles = false
 	){}
 
 	/**
@@ -82,7 +82,7 @@ class Effect{
 	 * Returns whether this effect will give the subject potion bubbles.
 	 */
 	public function hasBubbles() : bool{
-		return $this->hasBubbles;
+		return false;
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Effect{
 	public function applyEffect(Living $entity, EffectInstance $instance, float $potency = 1.0, ?Entity $source = null) : void{
 
 	}
-
+	
 	/**
 	 * Applies effects to the entity when the effect is first added.
 	 */

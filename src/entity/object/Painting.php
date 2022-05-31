@@ -140,7 +140,7 @@ class Painting extends Entity{
 		return false;
 	}
 
-	protected function updateMovement(bool $teleport = false) : void{
+	public function updateMovement(bool $teleport = false) : void{
 
 	}
 

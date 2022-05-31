@@ -64,7 +64,7 @@ class Dirt extends Opaque{
 
 			$newBlock = $this->coarse ? VanillaBlocks::DIRT() : VanillaBlocks::FARMLAND();
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new ItemUseOnBlockSound($newBlock));
-			$this->position->getWorld()->setBlock($this->position, $newBlock);
+			$this->position->getWorld()->setBlock($this->position, $newBlock, false);
 
 			return true;
 		}

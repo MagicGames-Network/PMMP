@@ -49,7 +49,7 @@ abstract class BaseCoral extends Transparent{
 
 			//TODO: check water inside the block itself (not supported on the API yet)
 			if(!$hasWater){
-				$world->setBlock($this->position, $this->setDead(true));
+				$world->setBlock($this->position, $this->setDead(true), false);
 			}
 		}
 	}

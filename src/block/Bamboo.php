@@ -23,25 +23,25 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\BlockDataSerializer;
-use pocketmine\event\block\StructureGrowEvent;
-use pocketmine\item\Bamboo as ItemBamboo;
-use pocketmine\item\Fertilizer;
-use pocketmine\item\Item;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector3;
-use pocketmine\player\Player;
-use pocketmine\world\BlockTransaction;
+use function min;
 use function count;
 use function gmp_add;
 use function gmp_and;
-use function gmp_intval;
 use function gmp_mul;
 use function gmp_xor;
-use function min;
 use function mt_rand;
 use const PHP_INT_MAX;
+use function gmp_intval;
+use pocketmine\item\Item;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
+use pocketmine\item\Fertilizer;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\world\BlockTransaction;
+use pocketmine\item\Bamboo as ItemBamboo;
+use pocketmine\event\block\StructureGrowEvent;
+use pocketmine\block\utils\BlockDataSerializer;
 
 class Bamboo extends Transparent{
 
@@ -230,11 +230,11 @@ class Bamboo extends Transparent{
 		if($this->ready){
 			$this->ready = false;
 			if($world->getFullLight($this->position) < 9 || !$this->grow(self::getMaxHeight($this->position->getFloorX(), $this->position->getFloorZ()), 1, null)){
-				$world->setBlock($this->position, $this);
+				$world->setBlock($this->position, $this, false);
 			}
 		}elseif($world->getBlock($this->position->up())->canBeReplaced()){
 			$this->ready = true;
-			$world->setBlock($this->position, $this);
+			$world->setBlock($this->position, $this, false);
 		}
 	}
 }

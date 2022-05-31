@@ -123,7 +123,7 @@ class FallingBlock extends Entity{
 					$ev = new EntityBlockChangeEvent($this, $block, $blockTarget ?? $this->block);
 					$ev->call();
 					if(!$ev->isCancelled()){
-						$world->setBlock($pos, $ev->getTo());
+						$world->setBlock($pos, $ev->getTo(), false);
 					}
 				}
 				$hasUpdate = true;

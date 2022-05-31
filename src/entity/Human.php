@@ -23,52 +23,52 @@ declare(strict_types=1);
 
 namespace pocketmine\entity;
 
-use pocketmine\data\SavedDataLoadingException;
-use pocketmine\entity\animation\TotemUseAnimation;
-use pocketmine\entity\effect\EffectInstance;
-use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\entity\projectile\ProjectileSource;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\inventory\CallbackInventoryListener;
-use pocketmine\inventory\Inventory;
-use pocketmine\inventory\InventoryHolder;
-use pocketmine\inventory\PlayerEnderInventory;
-use pocketmine\inventory\PlayerInventory;
-use pocketmine\inventory\PlayerOffHandInventory;
-use pocketmine\item\enchantment\VanillaEnchantments;
+use function min;
+use Ramsey\Uuid\Uuid;
+use pocketmine\nbt\NBT;
+use function random_int;
+use function array_merge;
 use pocketmine\item\Item;
+use function array_filter;
+use function array_values;
 use pocketmine\item\Totem;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\utils\Limits;
+use pocketmine\player\Player;
+use function array_key_exists;
 use pocketmine\nbt\tag\IntTag;
+use Ramsey\Uuid\UuidInterface;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\inventory\Inventory;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\inventory\InventoryHolder;
+use pocketmine\inventory\PlayerInventory;
+use pocketmine\world\sound\TotemUseSound;
+use pocketmine\entity\effect\EffectInstance;
+use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\data\SavedDataLoadingException;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\inventory\PlayerEnderInventory;
+use pocketmine\event\player\PlayerExhaustEvent;
+use pocketmine\inventory\PlayerOffHandInventory;
+use pocketmine\entity\animation\TotemUseAnimation;
+use pocketmine\entity\projectile\ProjectileSource;
 use pocketmine\network\mcpe\convert\TypeConverter;
+use pocketmine\inventory\CallbackInventoryListener;
+use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
 use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
-use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
-use pocketmine\network\mcpe\protocol\types\entity\StringMetadataProperty;
-use pocketmine\network\mcpe\protocol\types\GameMode;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
-use pocketmine\player\Player;
-use pocketmine\utils\Limits;
-use pocketmine\world\sound\TotemUseSound;
-use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
-use function array_filter;
-use function array_key_exists;
-use function array_merge;
-use function array_values;
-use function min;
-use function random_int;
+use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\protocol\types\entity\StringMetadataProperty;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 
 class Human extends Living implements ProjectileSource, InventoryHolder{
 
@@ -96,6 +96,9 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 
 	/** @var int */
 	protected $xpSeed;
+
+	/** @var int */
+	private $humanBaseEntityTick = 0;
 
 	public function __construct(Location $location, Skin $skin, ?CompoundTag $nbt = null){
 		$this->skin = $skin;

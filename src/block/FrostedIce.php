@@ -109,13 +109,13 @@ class FrostedIce extends Ice{
 			$ev = new BlockMeltEvent($this, VanillaBlocks::WATER());
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 			}
 			return true;
 		}
 
 		$this->age++;
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, mt_rand(20, 40));
 		return false;
 	}

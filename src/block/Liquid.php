@@ -23,18 +23,18 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\BlockDataSerializer;
-use pocketmine\block\utils\MinimumCostFlowCalculator;
-use pocketmine\entity\Entity;
-use pocketmine\event\block\BlockFormEvent;
-use pocketmine\event\block\BlockSpreadEvent;
+use function lcg_value;
 use pocketmine\item\Item;
-use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
-use pocketmine\world\sound\FizzSound;
+use pocketmine\entity\Entity;
 use pocketmine\world\sound\Sound;
-use function lcg_value;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\world\sound\FizzSound;
+use pocketmine\event\block\BlockFormEvent;
+use pocketmine\event\block\BlockSpreadEvent;
+use pocketmine\block\utils\BlockDataSerializer;
+use pocketmine\block\utils\MinimumCostFlowCalculator;
 
 abstract class Liquid extends Transparent{
 
@@ -301,13 +301,13 @@ abstract class Liquid extends Transparent{
 
 			if($falling !== $this->falling || (!$falling && $newDecay !== $this->decay)){
 				if(!$falling && $newDecay < 0){
-					$world->setBlock($this->position, VanillaBlocks::AIR());
+					$world->setBlock($this->position, VanillaBlocks::AIR(), true);
 					return;
 				}
 
 				$this->falling = $falling;
 				$this->decay = $falling ? 0 : $newDecay;
-				$world->setBlock($this->position, $this); //local block update will cause an update to be scheduled
+				$world->setBlock($this->position, $this, true); //local block update will cause an update to be scheduled
 			}
 		}
 
@@ -346,7 +346,7 @@ abstract class Liquid extends Transparent{
 					$this->position->getWorld()->useBreakOn($block->position);
 				}
 
-				$this->position->getWorld()->setBlock($block->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($block->position, $ev->getNewState(), true);
 			}
 		}
 	}
@@ -376,7 +376,7 @@ abstract class Liquid extends Transparent{
 		$ev = new BlockFormEvent($this, $result);
 		$ev->call();
 		if(!$ev->isCancelled()){
-			$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+			$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), true);
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new FizzSound(2.6 + (lcg_value() - lcg_value()) * 0.8));
 		}
 		return true;

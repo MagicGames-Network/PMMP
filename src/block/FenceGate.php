@@ -99,7 +99,7 @@ class FenceGate extends Transparent{
 		$inWall = $this->checkInWall();
 		if($inWall !== $this->inWall){
 			$this->inWall = $inWall;
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 		}
 	}
 
@@ -112,7 +112,7 @@ class FenceGate extends Transparent{
 			}
 		}
 
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		$this->position->getWorld()->addSound($this->position, new DoorSound());
 		return true;
 	}

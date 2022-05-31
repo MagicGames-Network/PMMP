@@ -51,7 +51,7 @@ trait FallableTrait{
 		$pos = $this->getPosition();
 		$down = $pos->getWorld()->getBlock($pos->getSide(Facing::DOWN));
 		if($down->getId() === BlockLegacyIds::AIR || $down instanceof Liquid || $down instanceof Fire){
-			$pos->getWorld()->setBlock($pos, VanillaBlocks::AIR());
+			$pos->getWorld()->setBlock($pos, VanillaBlocks::AIR(), true);
 
 			$block = $this;
 			if(!($block instanceof Block)) throw new AssumptionFailedError(__TRAIT__ . " should only be used by Blocks");

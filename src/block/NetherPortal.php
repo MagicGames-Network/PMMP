@@ -23,12 +23,16 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\math\Axis;
+use pocketmine\entity\Entity;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\block\utils\FacesOppositePlacingPlayerTrait;
+use pocketmine\block\utils\NormalHorizontalFacingInMetadataTrait;
 
 class NetherPortal extends Transparent{
+	use FacesOppositePlacingPlayerTrait;
+	use NormalHorizontalFacingInMetadataTrait;
 
 	protected int $axis = Axis::X;
 

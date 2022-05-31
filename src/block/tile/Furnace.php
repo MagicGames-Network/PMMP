@@ -23,22 +23,22 @@ declare(strict_types=1);
 
 namespace pocketmine\block\tile;
 
+use function max;
+use function array_map;
+use pocketmine\item\Item;
+use pocketmine\world\World;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
+use pocketmine\inventory\Inventory;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\crafting\FurnaceType;
+use pocketmine\crafting\FurnaceRecipe;
 use pocketmine\block\Furnace as BlockFurnace;
 use pocketmine\block\inventory\FurnaceInventory;
-use pocketmine\crafting\FurnaceRecipe;
-use pocketmine\crafting\FurnaceType;
 use pocketmine\event\inventory\FurnaceBurnEvent;
 use pocketmine\event\inventory\FurnaceSmeltEvent;
 use pocketmine\inventory\CallbackInventoryListener;
-use pocketmine\inventory\Inventory;
-use pocketmine\item\Item;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\ContainerSetDataPacket;
-use pocketmine\player\Player;
-use pocketmine\world\World;
-use function array_map;
-use function max;
 
 abstract class Furnace extends Spawnable implements Container, Nameable{
 	use NameableTrait;
@@ -141,7 +141,7 @@ abstract class Furnace extends Spawnable implements Container, Nameable{
 		$block = $this->getBlock();
 		if($block instanceof BlockFurnace && !$block->isLit()){
 			$block->setLit(true);
-			$this->position->getWorld()->setBlock($block->getPosition(), $block);
+			$this->position->getWorld()->setBlock($block->getPosition(), $block, false);
 		}
 	}
 
@@ -149,7 +149,7 @@ abstract class Furnace extends Spawnable implements Container, Nameable{
 		$block = $this->getBlock();
 		if($block instanceof BlockFurnace && $block->isLit()){
 			$block->setLit(false);
-			$this->position->getWorld()->setBlock($block->getPosition(), $block);
+			$this->position->getWorld()->setBlock($block->getPosition(), $block, false);
 		}
 	}
 
@@ -182,10 +182,10 @@ abstract class Furnace extends Spawnable implements Container, Nameable{
 		}
 
 		if($this->remainingFuelTime > 0){
-			--$this->remainingFuelTime;
+			$this->remainingFuelTime = $this->remainingFuelTime - 10;
 
 			if($smelt instanceof FurnaceRecipe && $canSmelt){
-				++$this->cookTime;
+				$this->cookTime = $this->cookTime + 10;
 
 				if($this->cookTime >= $furnaceType->getCookDurationTicks()){
 					$product = $smelt->getResult()->setCount($product->getCount() + 1);

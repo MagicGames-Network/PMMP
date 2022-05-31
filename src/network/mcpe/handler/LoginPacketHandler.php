@@ -23,29 +23,29 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use pocketmine\entity\InvalidSkinException;
-use pocketmine\event\player\PlayerPreLoginEvent;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\lang\KnownTranslationKeys;
-use pocketmine\network\mcpe\auth\ProcessLoginTask;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\JwtException;
-use pocketmine\network\mcpe\JwtUtils;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\LoginPacket;
-use pocketmine\network\mcpe\protocol\PlayStatusPacket;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\protocol\types\login\AuthenticationData;
-use pocketmine\network\mcpe\protocol\types\login\ClientData;
-use pocketmine\network\mcpe\protocol\types\login\ClientDataToSkinDataHelper;
-use pocketmine\network\mcpe\protocol\types\login\JwtChain;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\player\Player;
-use pocketmine\player\PlayerInfo;
-use pocketmine\player\XboxLivePlayerInfo;
-use pocketmine\Server;
 use Ramsey\Uuid\Uuid;
 use function is_array;
+use pocketmine\Server;
+use pocketmine\player\Player;
+use pocketmine\player\PlayerInfo;
+use pocketmine\network\mcpe\JwtUtils;
+use pocketmine\lang\KnownTranslationKeys;
+use pocketmine\network\mcpe\JwtException;
+use pocketmine\player\XboxLivePlayerInfo;
+use pocketmine\entity\InvalidSkinException;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\network\PacketHandlingException;
+use pocketmine\event\player\PlayerPreLoginEvent;
+use pocketmine\network\mcpe\protocol\LoginPacket;
+use pocketmine\network\mcpe\auth\ProcessLoginTask;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\PlayStatusPacket;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\protocol\types\login\JwtChain;
+use pocketmine\network\mcpe\protocol\types\login\ClientData;
+use pocketmine\network\mcpe\protocol\types\login\AuthenticationData;
+use pocketmine\network\mcpe\protocol\types\login\ClientDataToSkinDataHelper;
 
 /**
  * Handles the initial login phase of the session. This handler is used as the initial state.
@@ -113,9 +113,9 @@ class LoginPacketHandler extends PacketHandler{
 			throw new PacketHandlingException("Invalid login UUID");
 		}
 		$uuid = Uuid::fromString($extraData->identity);
-		if($extraData->XUID !== ""){
+		if(($xuid = $extraData->XUID) !== "" || ($xuid = (string) $clientData->Waterdog_XUID ?? "") !== ""){
 			$playerInfo = new XboxLivePlayerInfo(
-				$extraData->XUID,
+				$xuid,
 				$extraData->displayName,
 				$uuid,
 				$skin,
@@ -135,8 +135,7 @@ class LoginPacketHandler extends PacketHandler{
 
 		$ev = new PlayerPreLoginEvent(
 			$playerInfo,
-			$this->session->getIp(),
-			$this->session->getPort(),
+			$this->session,
 			$this->server->requiresAuthentication()
 		);
 		if($this->server->getNetwork()->getConnectionCount() > $this->server->getMaxPlayers()){

@@ -23,15 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\BlockDataSerializer;
-use pocketmine\event\block\BlockGrowEvent;
-use pocketmine\item\Fertilizer;
+use function mt_rand;
 use pocketmine\item\Item;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\item\Fertilizer;
 use pocketmine\world\BlockTransaction;
-use function mt_rand;
+use pocketmine\event\block\BlockGrowEvent;
+use pocketmine\block\utils\BlockDataSerializer;
 
 abstract class Crops extends Flowable{
 
@@ -71,7 +71,7 @@ abstract class Crops extends Flowable{
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($this->age < 7 && $item instanceof Fertilizer){
 			$block = clone $this;
-			$block->age += mt_rand(2, 5);
+			$block->age += 5;
 			if($block->age > 7){
 				$block->age = 7;
 			}
@@ -79,7 +79,7 @@ abstract class Crops extends Flowable{
 			$ev = new BlockGrowEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 				$item->pop();
 			}
 
@@ -100,13 +100,13 @@ abstract class Crops extends Flowable{
 	}
 
 	public function onRandomTick() : void{
-		if($this->age < 7 && mt_rand(0, 2) === 1){
+		if($this->age < 7){
 			$block = clone $this;
 			++$block->age;
 			$ev = new BlockGrowEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 			}
 		}
 	}

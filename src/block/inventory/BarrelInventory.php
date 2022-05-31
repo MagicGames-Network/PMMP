@@ -50,7 +50,7 @@ class BarrelInventory extends SimpleInventory implements BlockInventory{
 		$holder = $this->getHolder();
 		$block = $holder->getWorld()->getBlock($holder);
 		if($block instanceof Barrel){
-			$holder->getWorld()->setBlock($holder, $block->setOpen($isOpen));
+			$holder->getWorld()->setBlock($holder, $block->setOpen($isOpen), false);
 		}
 	}
 }

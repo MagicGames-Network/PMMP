@@ -71,7 +71,7 @@ abstract class Button extends Flowable{
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if(!$this->pressed){
 			$this->pressed = true;
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 			$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, $this->getActivationTime());
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new RedstonePowerOnSound());
 		}
@@ -82,7 +82,7 @@ abstract class Button extends Flowable{
 	public function onScheduledUpdate() : void{
 		if($this->pressed){
 			$this->pressed = false;
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new RedstonePowerOffSound());
 		}
 	}

@@ -142,7 +142,7 @@ class ItemFrame extends Flowable{
 			return true;
 		}
 
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 
 		return true;
 	}
@@ -155,7 +155,7 @@ class ItemFrame extends Flowable{
 			$this->position->getWorld()->dropItem($this->position->add(0.5, 0.5, 0.5), clone $this->framedItem);
 		}
 		$this->setFramedItem(null);
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		return true;
 	}
 

@@ -77,7 +77,7 @@ final class CoralBlock extends Opaque{
 				}
 			}
 			if(!$hasWater){
-				$world->setBlock($this->position, $this->setDead(true));
+				$world->setBlock($this->position, $this->setDead(true), false);
 			}
 		}
 	}

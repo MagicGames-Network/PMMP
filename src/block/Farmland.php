@@ -68,7 +68,7 @@ class Farmland extends Transparent{
 
 	public function onNearbyBlockChange() : void{
 		if($this->getSide(Facing::UP)->isSolid()){
-			$this->position->getWorld()->setBlock($this->position, VanillaBlocks::DIRT());
+			$this->position->getWorld()->setBlock($this->position, VanillaBlocks::DIRT(), false);
 		}
 	}
 
@@ -82,7 +82,7 @@ class Farmland extends Transparent{
 				$this->wetness--;
 				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}else{
-				$this->position->getWorld()->setBlock($this->position, VanillaBlocks::DIRT());
+				$this->position->getWorld()->setBlock($this->position, VanillaBlocks::DIRT(), false);
 			}
 		}elseif($this->wetness < 7){
 			$this->wetness = 7;
@@ -95,7 +95,7 @@ class Farmland extends Transparent{
 			$ev = new EntityTrampleFarmlandEvent($entity, $this);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->getPosition()->getWorld()->setBlock($this->getPosition(), VanillaBlocks::DIRT());
+				$this->getPosition()->getWorld()->setBlock($this->getPosition(), VanillaBlocks::DIRT(), false);
 			}
 		}
 		return null;

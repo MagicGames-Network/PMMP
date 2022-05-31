@@ -23,19 +23,19 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\BlockDataSerializer;
-use pocketmine\entity\Entity;
-use pocketmine\entity\Living;
-use pocketmine\event\block\BlockGrowEvent;
-use pocketmine\event\entity\EntityDamageByBlockEvent;
-use pocketmine\item\Fertilizer;
+use function mt_rand;
 use pocketmine\item\Item;
-use pocketmine\item\VanillaItems;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Living;
 use pocketmine\player\Player;
+use pocketmine\item\Fertilizer;
+use pocketmine\item\VanillaItems;
 use pocketmine\world\BlockTransaction;
-use function mt_rand;
+use pocketmine\event\block\BlockGrowEvent;
+use pocketmine\block\utils\BlockDataSerializer;
+use pocketmine\event\entity\EntityDamageByBlockEvent;
 
 class SweetBerryBush extends Flowable{
 	public const STAGE_SAPLING = 0;
@@ -98,12 +98,12 @@ class SweetBerryBush extends Flowable{
 			$ev->call();
 
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 				$item->pop();
 			}
 
 		}elseif(($dropAmount = $this->getBerryDropAmount()) > 0){
-			$this->position->getWorld()->setBlock($this->position, $this->setAge(self::STAGE_BUSH_NO_BERRIES));
+			$this->position->getWorld()->setBlock($this->position, $this->setAge(self::STAGE_BUSH_NO_BERRIES), false);
 			$this->position->getWorld()->dropItem($this->position, $this->asItem()->setCount($dropAmount));
 		}
 
@@ -135,13 +135,13 @@ class SweetBerryBush extends Flowable{
 	}
 
 	public function onRandomTick() : void{
-		if($this->age < self::STAGE_MATURE && mt_rand(0, 2) === 1){
+		if($this->age < self::STAGE_MATURE){
 			$block = clone $this;
 			++$block->age;
 			$ev = new BlockGrowEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 			}
 		}
 	}

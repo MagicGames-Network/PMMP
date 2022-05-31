@@ -189,7 +189,7 @@ abstract class BaseRail extends Flowable{
 				if(isset($otherPossible[$otherSide])){
 					$otherConnections[] = $otherSide;
 					$other->setConnections($otherConnections);
-					$this->position->getWorld()->setBlock($other->position, $other);
+					$this->position->getWorld()->setBlock($other->position, $other, false);
 
 					$changed = true;
 					$thisConnections[] = $thisSide;
@@ -202,7 +202,7 @@ abstract class BaseRail extends Flowable{
 
 		if($changed){
 			$this->setConnections($thisConnections);
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 		}
 	}
 

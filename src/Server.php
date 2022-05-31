@@ -27,146 +27,146 @@ declare(strict_types=1);
  */
 namespace pocketmine;
 
-use pocketmine\command\Command;
-use pocketmine\command\CommandSender;
-use pocketmine\command\SimpleCommandMap;
-use pocketmine\console\ConsoleCommandSender;
-use pocketmine\console\ConsoleReaderThread;
-use pocketmine\crafting\CraftingManager;
-use pocketmine\crafting\CraftingManagerFromDataHelper;
-use pocketmine\crash\CrashDump;
-use pocketmine\crash\CrashDumpRenderer;
-use pocketmine\entity\EntityDataHelper;
-use pocketmine\entity\Location;
-use pocketmine\event\HandlerListManager;
-use pocketmine\event\player\PlayerCreationEvent;
-use pocketmine\event\player\PlayerDataSaveEvent;
-use pocketmine\event\player\PlayerLoginEvent;
-use pocketmine\event\server\CommandEvent;
-use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\event\server\QueryRegenerateEvent;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\lang\Language;
-use pocketmine\lang\LanguageNotFoundException;
-use pocketmine\lang\Translatable;
-use pocketmine\nbt\BigEndianNbtSerializer;
-use pocketmine\nbt\NbtDataException;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\TreeRoot;
-use pocketmine\network\mcpe\compression\CompressBatchPromise;
-use pocketmine\network\mcpe\compression\CompressBatchTask;
-use pocketmine\network\mcpe\compression\Compressor;
-use pocketmine\network\mcpe\compression\ZlibCompressor;
-use pocketmine\network\mcpe\encryption\EncryptionContext;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\PacketBroadcaster;
-use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
-use pocketmine\network\mcpe\raklib\RakLibInterface;
-use pocketmine\network\Network;
-use pocketmine\network\NetworkInterfaceStartException;
-use pocketmine\network\query\DedicatedQueryNetworkInterface;
-use pocketmine\network\query\QueryHandler;
-use pocketmine\network\query\QueryInfo;
-use pocketmine\network\upnp\UPnPNetworkInterface;
-use pocketmine\permission\BanList;
-use pocketmine\permission\DefaultPermissions;
-use pocketmine\player\GameMode;
-use pocketmine\player\OfflinePlayer;
-use pocketmine\player\Player;
-use pocketmine\player\PlayerInfo;
-use pocketmine\plugin\PharPluginLoader;
-use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginEnableOrder;
-use pocketmine\plugin\PluginGraylist;
-use pocketmine\plugin\PluginManager;
-use pocketmine\plugin\PluginOwned;
-use pocketmine\plugin\ScriptPluginLoader;
-use pocketmine\promise\Promise;
-use pocketmine\promise\PromiseResolver;
-use pocketmine\resourcepacks\ResourcePackManager;
-use pocketmine\scheduler\AsyncPool;
-use pocketmine\snooze\SleeperHandler;
-use pocketmine\snooze\SleeperNotifier;
-use pocketmine\stats\SendUsageTask;
-use pocketmine\timings\Timings;
-use pocketmine\timings\TimingsHandler;
-use pocketmine\updater\UpdateChecker;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\Config;
-use pocketmine\utils\Filesystem;
-use pocketmine\utils\Internet;
-use pocketmine\utils\MainLogger;
-use pocketmine\utils\NotCloneable;
-use pocketmine\utils\NotSerializable;
-use pocketmine\utils\Process;
-use pocketmine\utils\SignalHandler;
-use pocketmine\utils\Terminal;
-use pocketmine\utils\TextFormat;
-use pocketmine\utils\Utils;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\format\io\WorldProviderManager;
-use pocketmine\world\format\io\WritableWorldProviderManagerEntry;
-use pocketmine\world\generator\Generator;
-use pocketmine\world\generator\GeneratorManager;
-use pocketmine\world\generator\InvalidGeneratorOptionsException;
-use pocketmine\world\World;
-use pocketmine\world\WorldCreationOptions;
-use pocketmine\world\WorldManager;
-use Ramsey\Uuid\UuidInterface;
-use Webmozart\PathUtil\Path;
-use function array_sum;
-use function base64_encode;
-use function cli_set_process_title;
-use function copy;
-use function count;
-use function date;
-use function fclose;
-use function file_exists;
-use function file_get_contents;
-use function file_put_contents;
-use function filemtime;
-use function fopen;
-use function get_class;
-use function ini_set;
-use function is_array;
-use function is_dir;
-use function is_object;
-use function is_resource;
-use function is_string;
-use function json_decode;
 use function max;
-use function microtime;
 use function min;
+use const PHP_EOL;
+use function copy;
+use function date;
+use function time;
+use function trim;
+use function count;
+use function fopen;
 use function mkdir;
-use function ob_end_flush;
-use function preg_replace;
-use function realpath;
-use function register_shutdown_function;
-use function rename;
 use function round;
 use function sleep;
-use function spl_object_id;
-use function sprintf;
-use function str_repeat;
-use function str_replace;
-use function stripos;
-use function strlen;
-use function strrpos;
-use function strtolower;
-use function strval;
-use function time;
 use function touch;
-use function trim;
+use function fclose;
+use function is_dir;
+use function rename;
+use function strlen;
+use function strval;
+use function ini_set;
+use function sprintf;
+use function stripos;
+use function strrpos;
+use const PHP_INT_MAX;
+use function is_array;
+use function realpath;
+use function array_sum;
+use function filemtime;
+use function get_class;
+use function is_object;
+use function is_string;
+use function microtime;
+use function str_repeat;
+use function strtolower;
 use function yaml_parse;
+use function file_exists;
+use function is_resource;
+use function json_decode;
+use function str_replace;
 use function zlib_decode;
 use function zlib_encode;
-use const DIRECTORY_SEPARATOR;
-use const PHP_EOL;
-use const PHP_INT_MAX;
-use const PTHREADS_INHERIT_NONE;
+use function ob_end_flush;
+use function preg_replace;
+use function base64_encode;
+use function spl_object_id;
+use pocketmine\utils\Utils;
+use pocketmine\world\World;
+use pocketmine\nbt\TreeRoot;
+use pocketmine\utils\Config;
+use Webmozart\PathUtil\Path;
 use const ZLIB_ENCODING_GZIP;
+use pocketmine\lang\Language;
+use pocketmine\player\Player;
+use pocketmine\plugin\Plugin;
+use pocketmine\utils\Process;
+use const DIRECTORY_SEPARATOR;
+use pocketmine\utils\Internet;
+use pocketmine\utils\Terminal;
+use Ramsey\Uuid\UuidInterface;
+use function file_get_contents;
+use function file_put_contents;
+use pocketmine\command\Command;
+use pocketmine\crash\CrashDump;
+use pocketmine\entity\Location;
+use pocketmine\network\Network;
+use pocketmine\player\GameMode;
+use pocketmine\promise\Promise;
+use pocketmine\timings\Timings;
+use const PTHREADS_INHERIT_NONE;
+use pocketmine\utils\Filesystem;
+use pocketmine\utils\MainLogger;
+use pocketmine\utils\TextFormat;
+use pocketmine\lang\Translatable;
+use pocketmine\player\PlayerInfo;
+use pocketmine\permission\BanList;
+use pocketmine\plugin\PluginOwned;
+use pocketmine\utils\NotCloneable;
+use pocketmine\world\format\Chunk;
+use pocketmine\world\WorldManager;
+use function cli_set_process_title;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\scheduler\AsyncPool;
+use pocketmine\stats\SendUsageTask;
+use pocketmine\utils\SignalHandler;
+use pocketmine\nbt\NbtDataException;
+use pocketmine\player\OfflinePlayer;
+use pocketmine\plugin\PluginManager;
+use pocketmine\command\CommandSender;
+use pocketmine\plugin\PluginGraylist;
+use pocketmine\snooze\SleeperHandler;
+use pocketmine\updater\UpdateChecker;
+use pocketmine\utils\NotSerializable;
+use pocketmine\snooze\SleeperNotifier;
+use pocketmine\timings\TimingsHandler;
+use pocketmine\crash\CrashDumpRenderer;
+use pocketmine\entity\EntityDataHelper;
+use pocketmine\network\query\QueryInfo;
+use pocketmine\plugin\PharPluginLoader;
+use pocketmine\promise\PromiseResolver;
+use function register_shutdown_function;
+use pocketmine\command\SimpleCommandMap;
+use pocketmine\crafting\CraftingManager;
+use pocketmine\event\HandlerListManager;
+use pocketmine\plugin\PluginEnableOrder;
+use pocketmine\event\server\CommandEvent;
+use pocketmine\plugin\ScriptPluginLoader;
+use pocketmine\world\generator\Generator;
+use pocketmine\nbt\BigEndianNbtSerializer;
+use pocketmine\network\query\QueryHandler;
+use pocketmine\world\WorldCreationOptions;
+use pocketmine\console\ConsoleReaderThread;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\console\ConsoleCommandSender;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\event\player\PlayerLoginEvent;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\lang\LanguageNotFoundException;
+use pocketmine\network\mcpe\PacketBroadcaster;
+use pocketmine\event\player\PlayerCreationEvent;
+use pocketmine\event\player\PlayerDataSaveEvent;
+use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\world\generator\GeneratorManager;
+use pocketmine\event\server\QueryRegenerateEvent;
+use pocketmine\network\upnp\UPnPNetworkInterface;
+use pocketmine\resourcepacks\ResourcePackManager;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\compression\Compressor;
+use pocketmine\network\mcpe\raklib\RakLibInterface;
+use pocketmine\world\format\io\WorldProviderManager;
+use pocketmine\crafting\CraftingManagerFromDataHelper;
+use pocketmine\network\NetworkInterfaceStartException;
+use pocketmine\network\mcpe\compression\ZlibCompressor;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\encryption\EncryptionContext;
+use pocketmine\network\mcpe\compression\CompressBatchTask;
+use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
+use pocketmine\network\query\DedicatedQueryNetworkInterface;
+use pocketmine\network\mcpe\compression\CompressBatchPromise;
+use pocketmine\world\generator\InvalidGeneratorOptionsException;
+use pocketmine\world\format\io\WritableWorldProviderManagerEntry;
 
 /**
  * The class that manages everything
@@ -265,6 +265,8 @@ class Server{
 
 	/** @var Player[] */
 	private array $playerList = [];
+	/** @var Player[] */
+	private array $playerListByUsername = [];
 
 	private SignalHandler $signalHandler;
 
@@ -639,14 +641,7 @@ class Server{
 	 * Returns an online player with the given name (case insensitive), or null if not found.
 	 */
 	public function getPlayerExact(string $name) : ?Player{
-		$name = strtolower($name);
-		foreach($this->getOnlinePlayers() as $player){
-			if(strtolower($player->getName()) === $name){
-				return $player;
-			}
-		}
-
-		return null;
+		return $this->playerListByUsername[strtolower($name)] ?? null;
 	}
 
 	/**
@@ -1003,7 +998,13 @@ class Server{
 
 			register_shutdown_function([$this, "crashDump"]);
 
-			$this->pluginManager->loadPlugins($this->pluginPath);
+			$loadErrorCount = 0;
+			$this->pluginManager->loadPlugins($this->pluginPath, $loadErrorCount);
+			if($loadErrorCount > 0){
+				$this->logger->emergency("Some plugins failed to load");
+				$this->forceShutdown();
+				return;
+			}
 			$this->enablePlugins(PluginEnableOrder::STARTUP());
 
 			if(!$this->startupPrepareWorlds()){
@@ -1014,11 +1015,6 @@ class Server{
 			if(!$this->startupPrepareNetworkInterfaces()){
 				$this->forceShutdown();
 				return;
-			}
-
-			if($this->configGroup->getPropertyBool("anonymous-statistics.enabled", true)){
-				$this->sendUsageTicker = 6000;
-				$this->sendUsage(SendUsageTask::TYPE_OPEN);
 			}
 
 			$this->configGroup->save();
@@ -1432,9 +1428,9 @@ class Server{
 			$this->logger->emergency("Forcing server shutdown");
 		}
 		try{
-			if(!$this->isRunning()){
-				$this->sendUsage(SendUsageTask::TYPE_CLOSE);
-			}
+			//if(!$this->isRunning()){
+			//	$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+			//}
 
 			$this->hasStopped = true;
 
@@ -1553,9 +1549,9 @@ class Server{
 		if(!$this->isRunning){
 			return;
 		}
-		if($this->sendUsageTicker > 0){
-			$this->sendUsage(SendUsageTask::TYPE_CLOSE);
-		}
+		//if($this->sendUsageTicker > 0){
+		//	$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+		//}
 		$this->hasStopped = false;
 
 		ini_set("error_reporting", '0');
@@ -1689,10 +1685,11 @@ class Server{
 		}
 		$rawUUID = $player->getUniqueId()->getBytes();
 		$this->playerList[$rawUUID] = $player;
+		$this->playerListByUsername[strtolower($player->getName())] = $player;
 
-		if($this->sendUsageTicker > 0){
-			$this->uniquePlayers[$rawUUID] = $rawUUID;
-		}
+		//if($this->sendUsageTicker > 0){
+		//	$this->uniquePlayers[$rawUUID] = $rawUUID;
+		//}
 
 		return true;
 	}
@@ -1700,6 +1697,7 @@ class Server{
 	public function removeOnlinePlayer(Player $player) : void{
 		if(isset($this->playerList[$rawUUID = $player->getUniqueId()->getBytes()])){
 			unset($this->playerList[$rawUUID]);
+			unset($this->playerListByUsername[strtolower($player->getName())]);
 			foreach($this->playerList as $p){
 				$p->getNetworkSession()->onPlayerRemoved($player);
 			}
@@ -1779,7 +1777,7 @@ class Server{
 		$this->network->tick();
 		Timings::$connection->stopTiming();
 
-		if(($this->tickCounter % 20) === 0){
+		if(($this->tickCounter % 300) === 0){
 			if($this->doTitleTick){
 				$this->titleTick();
 			}
@@ -1794,22 +1792,22 @@ class Server{
 			$this->network->getBandwidthTracker()->rotateAverageHistory();
 		}
 
-		if($this->sendUsageTicker > 0 && --$this->sendUsageTicker === 0){
-			$this->sendUsageTicker = 6000;
-			$this->sendUsage(SendUsageTask::TYPE_STATUS);
-		}
+		//if($this->sendUsageTicker > 0 && --$this->sendUsageTicker === 0){
+		//	$this->sendUsageTicker = 6000;
+		//	$this->sendUsage(SendUsageTask::TYPE_STATUS);
+		//}
 
-		if(($this->tickCounter % 100) === 0){
+		if(($this->tickCounter % 300) === 0){
 			foreach($this->worldManager->getWorlds() as $world){
 				$world->clearCache();
 			}
 
-			if($this->getTicksPerSecondAverage() < 12){
-				$this->logger->warning($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_server_tickOverload()));
-			}
-		}
+			//if($this->getTicksPerSecondAverage() < 12){
+			//	$this->logger->warning($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_server_tickOverload()));
+			//}
 
-		$this->getMemoryManager()->check();
+			$this->getMemoryManager()->check();
+		}
 
 		Timings::$serverTick->stopTiming();
 

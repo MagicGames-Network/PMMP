@@ -128,7 +128,7 @@ abstract class BaseSign extends Transparent{
 		$ev->call();
 		if(!$ev->isCancelled()){
 			$this->setText($ev->getNewText());
-			$this->position->getWorld()->setBlock($this->position, $this);
+			$this->position->getWorld()->setBlock($this->position, $this, false);
 			return true;
 		}
 

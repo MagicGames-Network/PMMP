@@ -98,7 +98,7 @@ class RedstoneRepeater extends Flowable{
 		if(++$this->delay > 4){
 			$this->delay = 1;
 		}
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		return true;
 	}
 

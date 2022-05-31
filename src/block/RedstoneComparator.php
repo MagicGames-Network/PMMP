@@ -115,7 +115,7 @@ class RedstoneComparator extends Flowable{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$this->isSubtractMode = !$this->isSubtractMode;
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 		return true;
 	}
 

@@ -101,7 +101,7 @@ class Sapling extends Flowable{
 				$this->grow(null);
 			}else{
 				$this->ready = true;
-				$this->position->getWorld()->setBlock($this->position, $this);
+				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}
 		}
 	}

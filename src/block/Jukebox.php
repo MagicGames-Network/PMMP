@@ -49,7 +49,7 @@ class Jukebox extends Opaque{
 			}
 		}
 
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$this->position->getWorld()->setBlock($this->position, $this, false);
 
 		return true;
 	}

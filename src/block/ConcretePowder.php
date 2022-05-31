@@ -46,7 +46,7 @@ class ConcretePowder extends Opaque implements Fallable{
 			$ev = new BlockFormEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
 			}
 		}else{
 			$this->startFalling();

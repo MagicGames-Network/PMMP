@@ -141,7 +141,7 @@ class BrewingStand extends Transparent{
 			}
 
 			if($changed){
-				$this->position->getWorld()->setBlock($this->position, $this);
+				$this->position->getWorld()->setBlock($this->position, $this, false);
 			}
 		}
 	}

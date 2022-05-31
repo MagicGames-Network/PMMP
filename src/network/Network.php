@@ -26,14 +26,14 @@ declare(strict_types=1);
  */
 namespace pocketmine\network;
 
-use pocketmine\event\server\NetworkInterfaceRegisterEvent;
-use pocketmine\event\server\NetworkInterfaceUnregisterEvent;
-use function base64_encode;
-use function get_class;
-use function preg_match;
-use function spl_object_id;
 use function time;
 use const PHP_INT_MAX;
+use function get_class;
+use function preg_match;
+use function base64_encode;
+use function spl_object_id;
+use pocketmine\event\server\NetworkInterfaceRegisterEvent;
+use pocketmine\event\server\NetworkInterfaceUnregisterEvent;
 
 class Network{
 	/** @var NetworkInterface[] */
@@ -60,6 +60,9 @@ class Network{
 	/** @var \Logger */
 	private $logger;
 
+	/** @var int */
+	private $delay;
+
 	public function __construct(\Logger $logger){
 		$this->sessionManager = new NetworkSessionManager();
 		$this->logger = $logger;
@@ -84,11 +87,14 @@ class Network{
 	}
 
 	public function tick() : void{
-		foreach($this->interfaces as $interface){
-			$interface->tick();
+		if ($this->delay++ >= 3) {
+			$this->delay = 0;
+			foreach($this->interfaces as $interface){
+				$interface->tick();
+			}
+	
+			$this->sessionManager->tick();
 		}
-
-		$this->sessionManager->tick();
 	}
 
 	/**
