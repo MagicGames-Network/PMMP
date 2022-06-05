@@ -23,15 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\block\inventory;
 
+use pocketmine\item\Item;
+use pocketmine\world\Position;
+use pocketmine\world\sound\Sound;
 use pocketmine\block\BlockLegacyIds;
 use pocketmine\inventory\SimpleInventory;
-use pocketmine\item\Item;
+use pocketmine\world\sound\ShulkerBoxOpenSound;
+use pocketmine\world\sound\ShulkerBoxCloseSound;
 use pocketmine\network\mcpe\protocol\BlockEventPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\world\Position;
-use pocketmine\world\sound\ShulkerBoxCloseSound;
-use pocketmine\world\sound\ShulkerBoxOpenSound;
-use pocketmine\world\sound\Sound;
 
 class ShulkerBoxInventory extends SimpleInventory implements BlockInventory{
 	use AnimatedBlockInventoryTrait;
@@ -50,7 +50,7 @@ class ShulkerBoxInventory extends SimpleInventory implements BlockInventory{
 	}
 
 	public function canAddItem(Item $item) : bool{
-		if($item->getId() === BlockLegacyIds::UNDYED_SHULKER_BOX || $item->getId() === BlockLegacyIds::SHULKER_BOX){
+		if($item->getId() === ItemIds::UNDYED_SHULKER_BOX || $item->getId() === ItemIds::SHULKER_BOX){
 			return false;
 		}
 		return parent::canAddItem($item);

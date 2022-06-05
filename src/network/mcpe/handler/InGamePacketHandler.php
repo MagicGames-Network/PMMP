@@ -209,7 +209,7 @@ class InGamePacketHandler extends PacketHandler
 
 		$rawPos = $packet->getPosition();
 		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
-		if ($this->player->getWorld()->getFolderName() === "MagicGames" || (!$this->forceMoveSync && $this->delay++ >= 20)) {
+		if (!$this->forceMoveSync && (($this->player->getWorld()->getFolderName() === "MagicGames" && $this->delay++ >= 5) || $this->delay++ >= 20)) {
 			$this->delay = 0;
 
 			$yaw = fmod($packet->getYaw(), 360);

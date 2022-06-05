@@ -112,8 +112,13 @@ class LoginPacketHandler extends PacketHandler{
 		if(!Uuid::isValid($extraData->identity)){
 			throw new PacketHandlingException("Invalid login UUID");
 		}
+		if (isset($clientData->Waterdog_XUID)) {
+			$this->session->disconnect("bruh why u gotta join from waterdog seriously");
+			return true;
+		}
+
 		$uuid = Uuid::fromString($extraData->identity);
-		if(($xuid = $extraData->XUID) !== "" || ($xuid = (string) $clientData->Waterdog_XUID ?? "") !== ""){
+		if(($xuid = $extraData->XUID) !== "" || ($xuid = (isset($clientData->Waterdog_XUID) && !$clientData->Waterdog_XUID === "") ? $clientData->Waterdog_XUID : "") !== ""){
 			$playerInfo = new XboxLivePlayerInfo(
 				$xuid,
 				$extraData->displayName,

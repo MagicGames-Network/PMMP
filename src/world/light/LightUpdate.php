@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\world\light;
 
-use pocketmine\world\format\LightArray;
+use function max;
+use pocketmine\world\World;
 use pocketmine\world\format\SubChunk;
+use pocketmine\world\format\LightArray;
 use pocketmine\world\utils\SubChunkExplorer;
 use pocketmine\world\utils\SubChunkExplorerStatus;
-use pocketmine\world\World;
-use function max;
 
 //TODO: make light updates asynchronous
 abstract class LightUpdate{
@@ -103,7 +103,6 @@ abstract class LightUpdate{
 			if($this->subChunkExplorer->moveTo($x, $y, $z) !== SubChunkExplorerStatus::INVALID){
 				$lightArray = $this->getCurrentLightArray();
 				$oldLevel = $lightArray->get($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
-
 				if($oldLevel !== $newLevel){
 					$lightArray->set($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK, $newLevel);
 					if($oldLevel < $newLevel){ //light increased
@@ -114,6 +113,9 @@ abstract class LightUpdate{
 						$context->removalQueue->enqueue([$x, $y, $z, $oldLevel]);
 					}
 				}
+			}elseif($this->getEffectiveLight($x, $y, $z) > 0){ //outside the chunk (e.g. virtual sky light from y=256)
+				$context->spreadVisited[$blockHash] = true;
+				$context->spreadQueue->enqueue([$x, $y, $z]);
 			}
 		}
 		return $context;

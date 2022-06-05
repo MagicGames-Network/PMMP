@@ -200,7 +200,7 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	 * @return PlayerInventory
 	 */
 	public function getInventory(){
-		return $this->inventory;
+		return $this->inventory ?? new PlayerInventory($this);
 	}
 
 	public function getOffHandInventory() : PlayerOffHandInventory{ return $this->offHandInventory; }
