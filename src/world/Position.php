@@ -29,19 +29,13 @@ use function assert;
 
 class Position extends Vector3{
 
-	/** @var World|null */
-	public $world = null;
+	public ?World $world = null;
 
-	/**
-	 * @param float|int $x
-	 * @param float|int $y
-	 * @param float|int $z
-	 */
-	public function __construct($x, $y, $z, ?World $world){
+	public function __construct(float|int $x, float|int $y, float|int $z, ?World $world){
 		parent::__construct($x, $y, $z);
-		if($world !== null && !$world->isLoaded()){
-			throw new \InvalidArgumentException("Specified world has been unloaded and cannot be used");
-		}
+		//if($world !== null && !$world->isLoaded()){
+		//	throw new \InvalidArgumentException("Specified world has been unloaded and cannot be used");
+		//}
 
 		$this->world = $world;
 	}
@@ -66,9 +60,9 @@ class Position extends Vector3{
 	 * @throws AssumptionFailedError
 	 */
 	public function getWorld() : World{
-		if($this->world === null || !$this->world->isLoaded()){
-			throw new AssumptionFailedError("Position world is null or has been unloaded");
-		}
+		//if($this->world === null || !$this->world->isLoaded()){
+		//	throw new AssumptionFailedError("Position world is null or has been unloaded");
+		//}
 
 		return $this->world;
 	}

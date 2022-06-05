@@ -23,136 +23,137 @@ declare(strict_types=1);
 
 namespace pocketmine\player;
 
+use const M_PI;
+use function abs;
+use function max;
+use function min;
+use const M_SQRT3;
+use function sqrt;
+use function trim;
+use function count;
+use function floor;
+use function assert;
+use function is_int;
+use function strlen;
+use function strpos;
+use function substr;
+use function explode;
+use const PHP_INT_MAX;
+use pocketmine\Server;
+use function array_map;
+use function get_class;
+use function mb_strlen;
+use function microtime;
+use function preg_match;
+use function strtolower;
 use pocketmine\block\Bed;
-use pocketmine\block\BlockLegacyIds;
+use pocketmine\form\Form;
+use pocketmine\item\Item;
+use function spl_object_id;
+use pocketmine\entity\Skin;
+use pocketmine\world\World;
+use pocketmine\entity\Human;
+use pocketmine\item\Durable;
+use pocketmine\math\Vector3;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Living;
+use pocketmine\lang\Language;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\world\Position;
+use Ramsey\Uuid\UuidInterface;
+use pocketmine\entity\Location;
+use pocketmine\item\Releasable;
+use pocketmine\timings\Timings;
+use pocketmine\entity\Attribute;
+use pocketmine\utils\TextFormat;
+use pocketmine\lang\Translatable;
+use pocketmine\world\sound\Sound;
 use pocketmine\block\UnknownBlock;
+use pocketmine\item\ItemUseResult;
+use pocketmine\world\format\Chunk;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\inventory\Inventory;
+use pocketmine\item\ConsumableItem;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\world\ChunkListener;
+use pocketmine\block\BlockLegacyIds;
 use pocketmine\command\CommandSender;
 use pocketmine\crafting\CraftingGrid;
 use pocketmine\data\java\GameModeIdMap;
-use pocketmine\entity\animation\Animation;
-use pocketmine\entity\animation\ArmSwingAnimation;
-use pocketmine\entity\animation\CriticalHitAnimation;
-use pocketmine\entity\Attribute;
-use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\entity\Entity;
-use pocketmine\entity\Human;
-use pocketmine\entity\Living;
-use pocketmine\entity\Location;
-use pocketmine\entity\object\ItemEntity;
 use pocketmine\entity\projectile\Arrow;
-use pocketmine\entity\Skin;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\inventory\InventoryCloseEvent;
-use pocketmine\event\inventory\InventoryOpenEvent;
-use pocketmine\event\player\PlayerBedEnterEvent;
-use pocketmine\event\player\PlayerBedLeaveEvent;
-use pocketmine\event\player\PlayerBlockPickEvent;
-use pocketmine\event\player\PlayerChangeSkinEvent;
+use pocketmine\entity\object\ItemEntity;
+use pocketmine\lang\KnownTranslationKeys;
+use pocketmine\entity\animation\Animation;
+use pocketmine\permission\PermissibleBase;
+use pocketmine\world\sound\ItemBreakSound;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\event\player\PlayerDeathEvent;
-use pocketmine\event\player\PlayerDisplayNameChangeEvent;
-use pocketmine\event\player\PlayerEmoteEvent;
-use pocketmine\event\player\PlayerEntityInteractEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerGameModeChangeEvent;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\player\PlayerItemConsumeEvent;
-use pocketmine\event\player\PlayerItemHeldEvent;
-use pocketmine\event\player\PlayerItemUseEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerJumpEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\event\player\PlayerPostChunkSendEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\form\FormValidationException;
+use pocketmine\inventory\TemporaryInventory;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\world\ChunkListenerNoOpTrait;
+use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerEmoteEvent;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\world\sound\EntityAttackSound;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\player\PlayerExhaustEvent;
+use pocketmine\event\player\PlayerItemUseEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
-use pocketmine\event\player\PlayerToggleFlightEvent;
+use pocketmine\inventory\PlayerCursorInventory;
+use pocketmine\world\sound\FireExtinguishSound;
+use pocketmine\event\player\PlayerBedEnterEvent;
+use pocketmine\event\player\PlayerBedLeaveEvent;
+use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\player\PlayerItemHeldEvent;
+use pocketmine\event\player\PlayerTransferEvent;
+use pocketmine\event\player\PlayerBlockPickEvent;
+use pocketmine\inventory\PlayerCraftingInventory;
+use pocketmine\permission\DefaultPermissionNames;
+use pocketmine\entity\animation\ArmSwingAnimation;
+use pocketmine\event\inventory\InventoryOpenEvent;
+use pocketmine\event\player\PlayerChangeSkinEvent;
+use pocketmine\event\player\PlayerToggleSwimEvent;
+use pocketmine\event\inventory\InventoryCloseEvent;
+use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerToggleGlideEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
-use pocketmine\event\player\PlayerToggleSprintEvent;
-use pocketmine\event\player\PlayerToggleSwimEvent;
-use pocketmine\event\player\PlayerTransferEvent;
-use pocketmine\event\player\PlayerViewDistanceChangeEvent;
-use pocketmine\form\Form;
-use pocketmine\form\FormValidationException;
 use pocketmine\inventory\CallbackInventoryListener;
-use pocketmine\inventory\Inventory;
-use pocketmine\inventory\PlayerCraftingInventory;
-use pocketmine\inventory\PlayerCursorInventory;
-use pocketmine\inventory\TemporaryInventory;
-use pocketmine\inventory\transaction\action\DropItemAction;
+use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\RespawnPacket;
+use pocketmine\permission\PermissibleDelegateTrait;
+use pocketmine\event\player\PlayerToggleFlightEvent;
+use pocketmine\event\player\PlayerToggleSprintEvent;
+use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\entity\animation\CriticalHitAnimation;
+use pocketmine\event\player\PlayerPostChunkSendEvent;
+use pocketmine\world\sound\EntityAttackNoDamageSound;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\player\PlayerEntityInteractEvent;
+use pocketmine\event\player\PlayerGameModeChangeEvent;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\item\enchantment\MeleeWeaponEnchantment;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\event\player\PlayerDisplayNameChangeEvent;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\event\player\PlayerViewDistanceChangeEvent;
 use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
+use pocketmine\inventory\transaction\action\DropItemAction;
 use pocketmine\inventory\transaction\TransactionBuilderInventory;
 use pocketmine\inventory\transaction\TransactionCancelledException;
 use pocketmine\inventory\transaction\TransactionValidationException;
-use pocketmine\item\ConsumableItem;
-use pocketmine\item\Durable;
-use pocketmine\item\enchantment\EnchantmentInstance;
-use pocketmine\item\enchantment\MeleeWeaponEnchantment;
-use pocketmine\item\Item;
-use pocketmine\item\ItemUseResult;
-use pocketmine\item\Releasable;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\lang\KnownTranslationKeys;
-use pocketmine\lang\Language;
-use pocketmine\lang\Translatable;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\PlayerMetadataFlags;
-use pocketmine\permission\DefaultPermissionNames;
-use pocketmine\permission\DefaultPermissions;
-use pocketmine\permission\PermissibleBase;
-use pocketmine\permission\PermissibleDelegateTrait;
-use pocketmine\Server;
-use pocketmine\timings\Timings;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\TextFormat;
-use pocketmine\world\ChunkListener;
-use pocketmine\world\ChunkListenerNoOpTrait;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\Position;
-use pocketmine\world\sound\EntityAttackNoDamageSound;
-use pocketmine\world\sound\EntityAttackSound;
-use pocketmine\world\sound\FireExtinguishSound;
-use pocketmine\world\sound\ItemBreakSound;
-use pocketmine\world\sound\Sound;
-use pocketmine\world\World;
-use Ramsey\Uuid\UuidInterface;
-use function abs;
-use function array_map;
-use function assert;
-use function count;
-use function explode;
-use function floor;
-use function get_class;
-use function is_int;
-use function max;
-use function mb_strlen;
-use function microtime;
-use function min;
-use function preg_match;
-use function spl_object_id;
-use function sqrt;
-use function strlen;
-use function strpos;
-use function strtolower;
-use function substr;
-use function trim;
-use const M_PI;
-use const M_SQRT3;
-use const PHP_INT_MAX;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -241,8 +242,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	protected ?float $lastMovementProcess = null;
 
 	protected int $inAirTicks = 0;
-	/** @var float */
-	protected $stepHeight = 0.6;
+	protected float $stepHeight = 0.6;
 
 	protected ?Vector3 $sleeping = null;
 	private ?Position $spawnPosition = null;
@@ -270,6 +270,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	protected array $forms = [];
 
 	protected \Logger $logger;
+
+	/** @var int */
+	private $playerUpdateTick;
 
 	protected ?SurvivalBlockBreakHandler $blockBreakHandler = null;
 
@@ -1308,47 +1311,52 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function onUpdate(int $currentTick) : bool{
 		$tickDiff = $currentTick - $this->lastUpdate;
 
-		if($tickDiff <= 0){
-			return true;
-		}
-
-		$this->messageCounter = 2;
-
-		$this->lastUpdate = $currentTick;
-
-		if(!$this->isAlive() && $this->spawned){
-			$this->onDeathUpdate($tickDiff);
-			return true;
-		}
-
-		$this->timings->startTiming();
-
-		if($this->spawned){
+		if ($this->playerUpdateTick++ % 3 === 0 && $this->spawned) {
 			$this->processMostRecentMovements();
 			$this->motion = new Vector3(0, 0, 0); //TODO: HACK! (Fixes player knockback being messed up)
-			if($this->onGround){
-				$this->inAirTicks = 0;
-			}else{
-				$this->inAirTicks += $tickDiff;
-			}
-
-			Timings::$entityBaseTick->startTiming();
-			$this->entityBaseTick($tickDiff);
-			Timings::$entityBaseTick->stopTiming();
-
-			if(!$this->isSpectator() && $this->isAlive()){
-				Timings::$playerCheckNearEntities->startTiming();
-				$this->checkNearEntities();
-				Timings::$playerCheckNearEntities->stopTiming();
-			}
-
-			if($this->blockBreakHandler !== null && !$this->blockBreakHandler->update()){
-				$this->blockBreakHandler = null;
-			}
 		}
 
-		$this->timings->stopTiming();
+		if ($this->playerUpdateTick >= 10) {
+			$this->playerUpdateTick = 0;
 
+			if ($tickDiff <= 0) {
+				return true;
+			}
+
+			$this->messageCounter = 2;
+
+			$this->lastUpdate = $currentTick;
+
+			if (!$this->isAlive() && $this->spawned) {
+				$this->onDeathUpdate($tickDiff);
+				return true;
+			}
+
+			$this->timings->startTiming();
+
+			if ($this->spawned) {
+				if ($this->onGround) {
+					$this->inAirTicks = 0;
+				} else {
+					$this->inAirTicks += $tickDiff;
+				}
+
+				Timings::$entityBaseTick->startTiming();
+				$this->entityBaseTick($tickDiff);
+				Timings::$entityBaseTick->stopTiming();
+
+				if (!$this->isSpectator() && $this->isAlive()) {
+					Timings::$playerCheckNearEntities->startTiming();
+					$this->checkNearEntities();
+					Timings::$playerCheckNearEntities->stopTiming();
+				}
+
+				if ($this->blockBreakHandler !== null && !$this->blockBreakHandler->update()) {
+					$this->blockBreakHandler = null;
+				}
+			}
+			$this->timings->stopTiming();
+		}
 		return true;
 	}
 
@@ -2205,42 +2213,21 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	}
 
 	protected function onDeath() : void{
-		//Crafting grid must always be evacuated even if keep-inventory is true. This dumps the contents into the
-		//main inventory and drops the rest on the ground.
-		$this->removeCurrentWindow();
+		$world = Server::getInstance()->getWorldManager()->getDefaultWorld();
 
-		$ev = new PlayerDeathEvent($this, $this->getDrops(), $this->getXpDropAmount(), null);
-		$ev->call();
+        $ev = new PlayerDeathEvent($this, $this->getDrops(), $this->getXpDropAmount(), null);
+        $ev->call();
 
-		if(!$ev->getKeepInventory()){
-			foreach($ev->getDrops() as $item){
-				$this->getWorld()->dropItem($this->location, $item);
-			}
-
-			if($this->inventory !== null){
-				$this->inventory->setHeldItemIndex(0);
-				$this->inventory->clearAll();
-			}
-			if($this->armorInventory !== null){
-				$this->armorInventory->clearAll();
-			}
-			if($this->offHandInventory !== null){
-				$this->offHandInventory->clearAll();
-			}
+        Server::getInstance()->broadcastMessage($ev->getDeathMessage());
+		$this->respawn();
+		$this->networkSession->sendDataPacket(RespawnPacket::create(
+			$this->getOffsetPosition($world->getSpawnLocation()),
+			RespawnPacket::READY_TO_SPAWN,
+			$this->getId()
+		));
+        if (property_exists($this, "stats")) {
+			$this->setHealth($this->stats["MaxHealth"]);
 		}
-
-		if(!$ev->getKeepXp()){
-			$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
-			$this->xpManager->setXpAndProgress(0, 0.0);
-		}
-
-		if($ev->getDeathMessage() != ""){
-			$this->server->broadcastMessage($ev->getDeathMessage());
-		}
-
-		$this->startDeathAnimation();
-
-		$this->getNetworkSession()->onServerDeath();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
@@ -2381,6 +2368,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 * {@inheritdoc}
 	 */
 	public function teleport(Vector3 $pos, ?float $yaw = null, ?float $pitch = null) : bool{
+		$this->setImmobile();
 		if(parent::teleport($pos, $yaw, $pitch)){
 
 			$this->removeCurrentWindow();
@@ -2401,10 +2389,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			//TODO: workaround for player last pos not getting updated
 			//Entity::updateMovement() normally handles this, but it's overridden with an empty function in Player
 			$this->resetLastMovements();
-
+			$this->setImmobile(false);
 			return true;
 		}
-
+		$this->setImmobile(false);
 		return false;
 	}
 

@@ -30,8 +30,7 @@ use function min;
 
 abstract class Durable extends Item{
 
-	/** @var int */
-	protected $damage = 0;
+	protected int $damage = 0;
 	private bool $unbreakable = false;
 
 	public function getMeta() : int{

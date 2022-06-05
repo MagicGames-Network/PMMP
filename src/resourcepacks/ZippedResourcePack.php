@@ -42,14 +42,9 @@ use function strlen;
 
 class ZippedResourcePack implements ResourcePack{
 
-	/** @var string */
-	protected $path;
-
-	/** @var Manifest */
-	protected $manifest;
-
-	/** @var string|null */
-	protected $sha256 = null;
+	protected string $path;
+	protected Manifest $manifest;
+	protected ?string $sha256 = null;
 
 	/** @var resource */
 	protected $fileResource;

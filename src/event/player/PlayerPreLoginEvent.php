@@ -23,11 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
-use pocketmine\event\Cancellable;
-use pocketmine\event\Event;
-use pocketmine\player\PlayerInfo;
-use function array_keys;
 use function count;
+use function array_keys;
+use pocketmine\event\Event;
+use pocketmine\event\Cancellable;
+use pocketmine\player\PlayerInfo;
+use pocketmine\network\mcpe\NetworkSession;
 
 /**
  * Called when a player connects to the server, prior to authentication taking place.
@@ -52,20 +53,14 @@ class PlayerPreLoginEvent extends Event implements Cancellable{
 		self::KICK_REASON_BANNED
 	];
 
-	/** @var bool */
-	protected $authRequired;
-
 	/** @var string[] reason const => associated message */
-	protected $kickReasons = [];
+	protected array $kickReasons = [];
 
 	public function __construct(
 		private PlayerInfo $playerInfo,
-		private string $ip,
-		private int $port,
-		bool $authRequired
-	){
-		$this->authRequired = $authRequired;
-	}
+		private NetworkSession $session,
+		protected bool $authRequired
+	){}
 
 	/**
 	 * Returns an object containing self-proclaimed information about the connecting player.
@@ -77,12 +72,16 @@ class PlayerPreLoginEvent extends Event implements Cancellable{
 	}
 
 	public function getIp() : string{
-		return $this->ip;
+		return $this->session->getIp();
 	}
 
 	public function getPort() : int{
-		return $this->port;
+		return $this->session->getPort();
 	}
+
+	public function getSession(): NetworkSession{
+        return $this->session;
+    }
 
 	public function isAuthRequired() : bool{
 		return $this->authRequired;

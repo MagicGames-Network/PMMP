@@ -135,16 +135,12 @@ use const JSON_THROW_ON_ERROR;
 class InGamePacketHandler extends PacketHandler{
 	private const MAX_FORM_RESPONSE_DEPTH = 2; //modal/simple will be 1, custom forms 2 - they will never contain anything other than string|int|float|bool|null
 
-	/** @var CraftingTransaction|null */
-	protected $craftingTransaction = null;
+	protected ?CraftingTransaction $craftingTransaction = null;
 
-	/** @var float */
-	protected $lastRightClickTime = 0.0;
-	/** @var UseItemTransactionData|null */
-	protected $lastRightClickData = null;
+	protected float $lastRightClickTime = 0.0;
+	protected ?UseItemTransactionData $lastRightClickData = null;
 
-	/** @var bool */
-	public $forceMoveSync = false;
+	public bool $forceMoveSync = false;
 
 	public function __construct(
 		private Player $player,
@@ -206,13 +202,9 @@ class InGamePacketHandler extends PacketHandler{
 
 		$sneaking = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
 		$sprinting = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
-		$swimming = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING);
-		$gliding = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING);
 		$mismatch =
 			($sneaking !== null && !$this->player->toggleSneak($sneaking)) |
-			($sprinting !== null && !$this->player->toggleSprint($sprinting)) |
-			($swimming !== null && !$this->player->toggleSwim($swimming)) |
-			($gliding !== null && !$this->player->toggleGlide($gliding));
+			($sprinting !== null && !$this->player->toggleSprint($sprinting));
 		if((bool) $mismatch){
 			$this->player->sendData([$this->player]);
 		}
@@ -221,8 +213,18 @@ class InGamePacketHandler extends PacketHandler{
 			$this->player->jump();
 		}
 
-		if(!$this->forceMoveSync){
-			//TODO: this packet has WAYYYYY more useful information that we're not using
+		$rawPos = $packet->getPosition();
+		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
+		if ($this->player->getWorld()->getFolderName() === "MagicGames" || (!$this->forceMoveSync && $this->delay++ >= 20)) {
+			$this->delay = 0;
+
+			$yaw = fmod($packet->getYaw(), 360);
+			$pitch = fmod($packet->getPitch(), 360);
+			if ($yaw < 0) {
+				$yaw += 360;
+			}
+
+			$this->player->setRotation($yaw, $pitch);
 			$this->player->handleMovement($newPos);
 		}
 

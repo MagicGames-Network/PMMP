@@ -76,50 +76,37 @@ use const M_PI;
 abstract class Living extends Entity{
 	protected const DEFAULT_BREATH_TICKS = 300;
 
-	protected $gravity = 0.08;
-	protected $drag = 0.02;
+	protected int $attackTime = 0;
+
+	public int $deadTicks = 0;
+	protected int $maxDeadTicks = 25;
+
+	protected float $jumpVelocity = 0.42;
+
+	protected EffectManager $effectManager;
+
+	protected ArmorInventory $armorInventory;
+
+	protected bool $breathing = true;
+	protected int $breathTicks = self::DEFAULT_BREATH_TICKS;
+	protected int $maxBreathTicks = self::DEFAULT_BREATH_TICKS;
+
+	protected Attribute $healthAttr;
+	protected Attribute $absorptionAttr;
+	protected Attribute $knockbackResistanceAttr;
+	protected Attribute $moveSpeedAttr;
+
+	protected bool $sprinting = false;
+	protected bool $sneaking = false;
+	protected bool $gliding = false;
+	protected bool $swimming = false;
 
 	/** @var int */
-	protected $attackTime = 0;
+	private $livingBaseEntityTick = 0;
 
-	/** @var int */
-	public $deadTicks = 0;
-	/** @var int */
-	protected $maxDeadTicks = 25;
+	protected function getInitialDragMultiplier() : float{ return 0.02; }
 
-	/** @var float */
-	protected $jumpVelocity = 0.42;
-
-	/** @var EffectManager */
-	protected $effectManager;
-
-	/** @var ArmorInventory */
-	protected $armorInventory;
-
-	/** @var bool */
-	protected $breathing = true;
-	/** @var int */
-	protected $breathTicks = self::DEFAULT_BREATH_TICKS;
-	/** @var int */
-	protected $maxBreathTicks = self::DEFAULT_BREATH_TICKS;
-
-	/** @var Attribute */
-	protected $healthAttr;
-	/** @var Attribute */
-	protected $absorptionAttr;
-	/** @var Attribute */
-	protected $knockbackResistanceAttr;
-	/** @var Attribute */
-	protected $moveSpeedAttr;
-
-	/** @var bool */
-	protected $sprinting = false;
-	/** @var bool */
-	protected $sneaking = false;
-	/** @var bool */
-	protected $gliding = false;
-	/** @var bool */
-	protected $swimming = false;
+	protected function getInitialGravity() : float{ return 0.08; }
 
 	abstract public function getName() : string;
 
@@ -526,14 +513,18 @@ abstract class Living extends Entity{
 			$e = $source->getChild();
 			if($e !== null){
 				$motion = $e->getMotion();
-				$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
+				if ($this instanceof Human) {
+					$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
+				}
 			}
 		}elseif($source instanceof EntityDamageByEntityEvent){
 			$e = $source->getDamager();
 			if($e !== null){
 				$deltaX = $this->location->x - $e->location->x;
 				$deltaZ = $this->location->z - $e->location->z;
-				$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
+				if ($this instanceof Human) {
+					$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
+				}
 			}
 		}
 
@@ -582,17 +573,12 @@ abstract class Living extends Entity{
 		$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
 
 		$this->startDeathAnimation();
+		$this->endDeathAnimation();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
-		if($this->deadTicks < $this->maxDeadTicks){
-			$this->deadTicks += $tickDiff;
-			if($this->deadTicks >= $this->maxDeadTicks){
-				$this->endDeathAnimation();
-			}
-		}
-
-		return $this->deadTicks >= $this->maxDeadTicks;
+		$this->endDeathAnimation();
+		return false;
 	}
 
 	protected function startDeathAnimation() : void{
@@ -601,6 +587,7 @@ abstract class Living extends Entity{
 
 	protected function endDeathAnimation() : void{
 		$this->despawnFromAll();
+		$this->close();
 	}
 
 	protected function entityBaseTick(int $tickDiff = 1) : bool{
@@ -608,19 +595,23 @@ abstract class Living extends Entity{
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		if($this->isAlive()){
-			if($this->effectManager->tick($tickDiff)){
-				$hasUpdate = true;
-			}
-
-			if($this->isInsideOfSolid()){
-				$hasUpdate = true;
-				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
-				$this->attack($ev);
-			}
-
-			if($this->doAirSupplyTick($tickDiff)){
-				$hasUpdate = true;
+		$tickDiff = $tickDiff + 10;
+		if ($this->livingBaseEntityTick++ >= 10) {
+			$this->livingBaseEntityTick = 0;
+			if($this->isAlive()){
+				if($this->effectManager->tick($tickDiff)){
+					$hasUpdate = true;
+				}
+	
+				if($this->isInsideOfSolid()){
+					$hasUpdate = true;
+					$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
+					$this->attack($ev);
+				}
+	
+				if($this->doAirSupplyTick($tickDiff)){
+					$hasUpdate = true;
+				}
 			}
 		}
 
@@ -850,8 +841,10 @@ abstract class Living extends Entity{
 	}
 
 	protected function destroyCycles() : void{
-		$this->armorInventory = null;
-		$this->effectManager = null;
+		unset(
+			$this->armorInventory,
+			$this->effectManager
+		);
 		parent::destroyCycles();
 	}
 }

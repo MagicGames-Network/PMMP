@@ -23,37 +23,37 @@ declare(strict_types=1);
 
 namespace pocketmine\world\format\io\region;
 
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\Binary;
-use pocketmine\utils\BinaryDataException;
-use pocketmine\utils\BinaryStream;
-use pocketmine\world\format\ChunkException;
-use pocketmine\world\format\io\exception\CorruptedChunkException;
-use function assert;
-use function ceil;
 use function chr;
-use function clearstatcache;
-use function fclose;
-use function file_exists;
-use function filesize;
+use function max;
+use function ceil;
+use function time;
 use function fopen;
 use function fread;
 use function fseek;
-use function ftruncate;
-use function fwrite;
-use function is_resource;
 use function ksort;
-use function max;
+use function touch;
+use function assert;
+use function fclose;
+use function fwrite;
+use function strlen;
+use function unpack;
 use function str_pad;
+use function filesize;
+use const SORT_NUMERIC;
+use function ftruncate;
+use const STR_PAD_RIGHT;
 use function str_repeat;
+use function file_exists;
+use function is_resource;
+use function clearstatcache;
+use pocketmine\utils\Binary;
+use pocketmine\utils\BinaryStream;
 use function stream_set_read_buffer;
 use function stream_set_write_buffer;
-use function strlen;
-use function time;
-use function touch;
-use function unpack;
-use const SORT_NUMERIC;
-use const STR_PAD_RIGHT;
+use pocketmine\utils\BinaryDataException;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\world\format\ChunkException;
+use pocketmine\world\format\io\exception\CorruptedChunkException;
 
 class RegionLoader{
 	public const COMPRESSION_GZIP = 1;
@@ -64,27 +64,20 @@ class RegionLoader{
 
 	public const FIRST_SECTOR = 2; //location table occupies 0 and 1
 
-	/** @var int */
-	public static $COMPRESSION_LEVEL = 7;
-
-	/** @var string */
-	protected $filePath;
 	/** @var resource */
 	protected $filePointer;
-	/** @var int */
-	protected $nextSector = self::FIRST_SECTOR;
+	protected int $nextSector = self::FIRST_SECTOR;
 	/** @var RegionLocationTableEntry[]|null[] */
-	protected $locationTable = [];
-	/** @var RegionGarbageMap */
-	protected $garbageTable;
-	/** @var int */
-	public $lastUsed = 0;
+	protected array $locationTable = [];
+	protected RegionGarbageMap $garbageTable;
+	public int $lastUsed;
 
 	/**
 	 * @throws CorruptedRegionException
 	 */
-	private function __construct(string $filePath){
-		$this->filePath = $filePath;
+	private function __construct(
+		protected string $filePath
+	){
 		$this->garbageTable = new RegionGarbageMap([]);
 		$this->lastUsed = time();
 
