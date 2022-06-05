@@ -17,26 +17,28 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use function lcg_value;
-use pocketmine\item\Item;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector3;
-use pocketmine\entity\Entity;
-use pocketmine\world\sound\Sound;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\world\sound\FizzSound;
-use pocketmine\event\block\BlockFormEvent;
-use pocketmine\event\block\BlockSpreadEvent;
 use pocketmine\block\utils\BlockDataSerializer;
 use pocketmine\block\utils\MinimumCostFlowCalculator;
+use pocketmine\block\utils\SupportType;
+use pocketmine\entity\Entity;
+use pocketmine\event\block\BlockFormEvent;
+use pocketmine\event\block\BlockSpreadEvent;
+use pocketmine\item\Item;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\world\sound\FizzSound;
+use pocketmine\world\sound\Sound;
+use function lcg_value;
 
 abstract class Liquid extends Transparent{
+	public const MAX_DECAY = 7;
 
 	protected BlockIdentifierFlattened $idInfoFlattened;
 
@@ -62,7 +64,7 @@ abstract class Liquid extends Transparent{
 	}
 
 	public function readStateFromData(int $id, int $stateMeta) : void{
-		$this->decay = BlockDataSerializer::readBoundedInt("decay", $stateMeta & 0x07, 0, 7);
+		$this->decay = BlockDataSerializer::readBoundedInt("decay", $stateMeta & 0x07, 0, self::MAX_DECAY);
 		$this->falling = ($stateMeta & BlockLegacyMetadata::LIQUID_FLAG_FALLING) !== 0;
 		$this->still = $id === $this->idInfoFlattened->getSecondId();
 	}
@@ -83,8 +85,8 @@ abstract class Liquid extends Transparent{
 
 	/** @return $this */
 	public function setDecay(int $decay) : self{
-		if($decay < 0 || $decay > 7){
-			throw new \InvalidArgumentException("Decay must be in range 0-7");
+		if($decay < 0 || $decay > self::MAX_DECAY){
+			throw new \InvalidArgumentException("Decay must be in range 0 ... " . self::MAX_DECAY);
 		}
 		$this->decay = $decay;
 		return $this;
@@ -111,6 +113,10 @@ abstract class Liquid extends Transparent{
 	 */
 	protected function recalculateCollisionBoxes() : array{
 		return [];
+	}
+
+	public function getSupportType(int $facing) : SupportType{
+		return SupportType::NONE();
 	}
 
 	public function getDropsForCompatibleTool(Item $item) : array{
@@ -282,7 +288,7 @@ abstract class Liquid extends Transparent{
 			$newDecay = $smallestFlowDecay + $multiplier;
 			$falling = false;
 
-			if($newDecay >= 8 || $smallestFlowDecay < 0){
+			if($newDecay > self::MAX_DECAY || $smallestFlowDecay < 0){
 				$newDecay = -1;
 			}
 
@@ -301,13 +307,13 @@ abstract class Liquid extends Transparent{
 
 			if($falling !== $this->falling || (!$falling && $newDecay !== $this->decay)){
 				if(!$falling && $newDecay < 0){
-					$world->setBlock($this->position, VanillaBlocks::AIR(), true);
+					$world->setBlock($this->position, VanillaBlocks::AIR());
 					return;
 				}
 
 				$this->falling = $falling;
 				$this->decay = $falling ? 0 : $newDecay;
-				$world->setBlock($this->position, $this, true); //local block update will cause an update to be scheduled
+				$world->setBlock($this->position, $this); //local block update will cause an update to be scheduled
 			}
 		}
 
@@ -322,7 +328,7 @@ abstract class Liquid extends Transparent{
 				$adjacentDecay = $this->decay + $multiplier;
 			}
 
-			if($adjacentDecay < 8){
+			if($adjacentDecay <= self::MAX_DECAY){
 				$calculator = new MinimumCostFlowCalculator($this->position->getWorld(), $this->getFlowDecayPerBlock(), \Closure::fromCallable([$this, 'canFlowInto']));
 				foreach($calculator->getOptimalFlowDirections($this->position->getFloorX(), $this->position->getFloorY(), $this->position->getFloorZ()) as $facing){
 					$this->flowIntoBlock($world->getBlock($this->position->getSide($facing)), $adjacentDecay, false);
@@ -346,7 +352,7 @@ abstract class Liquid extends Transparent{
 					$this->position->getWorld()->useBreakOn($block->position);
 				}
 
-				$this->position->getWorld()->setBlock($block->position, $ev->getNewState(), true);
+				$this->position->getWorld()->setBlock($block->position, $ev->getNewState());
 			}
 		}
 	}
@@ -376,7 +382,7 @@ abstract class Liquid extends Transparent{
 		$ev = new BlockFormEvent($this, $result);
 		$ev->call();
 		if(!$ev->isCancelled()){
-			$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), true);
+			$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new FizzSound(2.6 + (lcg_value() - lcg_value()) * 0.8));
 		}
 		return true;

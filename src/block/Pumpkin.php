@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -36,7 +36,7 @@ class Pumpkin extends Opaque{
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($item instanceof Shears && in_array($face, Facing::HORIZONTAL, true)){
 			$item->applyDamage(1);
-			$this->position->getWorld()->setBlock($this->position, VanillaBlocks::CARVED_PUMPKIN()->setFacing($face), false);
+			$this->position->getWorld()->setBlock($this->position, VanillaBlocks::CARVED_PUMPKIN()->setFacing($face));
 			$this->position->getWorld()->dropItem($this->position->add(0.5, 0.5, 0.5), VanillaItems::PUMPKIN_SEEDS()->setCount(1));
 			return true;
 		}

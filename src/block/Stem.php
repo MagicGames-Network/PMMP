@@ -17,30 +17,31 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use function mt_rand;
-use function array_rand;
+use pocketmine\event\block\BlockGrowEvent;
 use pocketmine\item\Item;
 use pocketmine\math\Facing;
-use pocketmine\event\block\BlockGrowEvent;
+use function array_rand;
+use function mt_rand;
 
 abstract class Stem extends Crops{
 
 	abstract protected function getPlant() : Block;
 
 	public function onRandomTick() : void{
-			if($this->age < 7){
+		if(mt_rand(0, 2) === 1){
+			if($this->age < self::MAX_AGE){
 				$block = clone $this;
 				++$block->age;
 				$ev = new BlockGrowEvent($this, $block);
 				$ev->call();
 				if(!$ev->isCancelled()){
-					$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
+					$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
 				}
 			}else{
 				$grow = $this->getPlant();
@@ -56,10 +57,11 @@ abstract class Stem extends Crops{
 					$ev = new BlockGrowEvent($side, $grow);
 					$ev->call();
 					if(!$ev->isCancelled()){
-						$this->position->getWorld()->setBlock($side->position, $ev->getNewState(), false);
+						$this->position->getWorld()->setBlock($side->position, $ev->getNewState());
 					}
 				}
 			}
+		}
 	}
 
 	public function getDropsForCompatibleTool(Item $item) : array{

@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -26,27 +26,28 @@ declare(strict_types=1);
  */
 namespace pocketmine\block;
 
-use function count;
+use pocketmine\block\tile\Spawnable;
+use pocketmine\block\tile\Tile;
+use pocketmine\block\utils\InvalidBlockStateException;
+use pocketmine\block\utils\SupportType;
+use pocketmine\entity\Entity;
+use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\math\Axis;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\RayTraceResult;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\player\Player;
+use pocketmine\world\BlockTransaction;
+use pocketmine\world\format\Chunk;
+use pocketmine\world\Position;
+use pocketmine\world\World;
 use function assert;
+use function count;
 use function dechex;
 use const PHP_INT_MAX;
-use pocketmine\item\Item;
-use pocketmine\math\Axis;
-use pocketmine\world\World;
-use pocketmine\math\Vector3;
-use pocketmine\entity\Entity;
-use pocketmine\player\Player;
-use pocketmine\world\Position;
-use pocketmine\block\tile\Tile;
-use pocketmine\item\ItemFactory;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\world\format\Chunk;
-use pocketmine\math\RayTraceResult;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\block\tile\Spawnable;
-use pocketmine\world\BlockTransaction;
-use pocketmine\item\enchantment\VanillaEnchantments;
-use pocketmine\block\utils\InvalidBlockStateException;
 
 class Block{
 	public const INTERNAL_METADATA_BITS = 4;
@@ -152,7 +153,7 @@ class Block{
 				$oldTile->close();
 				$oldTile = null;
 			}elseif($oldTile instanceof Spawnable){
-				$oldTile->setDirty(); //destroy old network cache
+				$oldTile->clearSpawnCompoundCache(); //destroy old network cache
 			}
 		}
 		if($oldTile === null && $tileType !== null){
@@ -608,6 +609,10 @@ class Block{
 	 */
 	protected function recalculateCollisionBoxes() : array{
 		return [AxisAlignedBB::one()];
+	}
+
+	public function getSupportType(int $facing) : SupportType{
+		return SupportType::FULL();
 	}
 
 	public function isFullCube() : bool{

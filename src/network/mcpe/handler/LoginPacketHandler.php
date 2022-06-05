@@ -17,66 +17,50 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use Ramsey\Uuid\Uuid;
-use function is_array;
-use pocketmine\Server;
+use pocketmine\entity\InvalidSkinException;
+use pocketmine\event\player\PlayerPreLoginEvent;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\lang\KnownTranslationKeys;
+use pocketmine\network\mcpe\auth\ProcessLoginTask;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\JwtException;
+use pocketmine\network\mcpe\JwtUtils;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\protocol\LoginPacket;
+use pocketmine\network\mcpe\protocol\PlayStatusPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\types\login\AuthenticationData;
+use pocketmine\network\mcpe\protocol\types\login\ClientData;
+use pocketmine\network\mcpe\protocol\types\login\ClientDataToSkinDataHelper;
+use pocketmine\network\mcpe\protocol\types\login\JwtChain;
+use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
 use pocketmine\player\PlayerInfo;
-use pocketmine\network\mcpe\JwtUtils;
-use pocketmine\lang\KnownTranslationKeys;
-use pocketmine\network\mcpe\JwtException;
 use pocketmine\player\XboxLivePlayerInfo;
-use pocketmine\entity\InvalidSkinException;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\event\player\PlayerPreLoginEvent;
-use pocketmine\network\mcpe\protocol\LoginPacket;
-use pocketmine\network\mcpe\auth\ProcessLoginTask;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\protocol\PlayStatusPacket;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\protocol\types\login\JwtChain;
-use pocketmine\network\mcpe\protocol\types\login\ClientData;
-use pocketmine\network\mcpe\protocol\types\login\AuthenticationData;
-use pocketmine\network\mcpe\protocol\types\login\ClientDataToSkinDataHelper;
+use pocketmine\Server;
+use Ramsey\Uuid\Uuid;
+use function is_array;
 
 /**
  * Handles the initial login phase of the session. This handler is used as the initial state.
  */
 class LoginPacketHandler extends PacketHandler{
-
-	/** @var Server */
-	private $server;
-	/** @var NetworkSession */
-	private $session;
-	/**
-	 * @var \Closure
-	 * @phpstan-var \Closure(PlayerInfo) : void
-	 */
-	private $playerInfoConsumer;
-	/**
-	 * @var \Closure
-	 * @phpstan-var \Closure(bool, bool, ?string, ?string) : void
-	 */
-	private $authCallback;
-
 	/**
 	 * @phpstan-param \Closure(PlayerInfo) : void $playerInfoConsumer
 	 * @phpstan-param \Closure(bool $isAuthenticated, bool $authRequired, ?string $error, ?string $clientPubKey) : void $authCallback
 	 */
-	public function __construct(Server $server, NetworkSession $session, \Closure $playerInfoConsumer, \Closure $authCallback){
-		$this->session = $session;
-		$this->server = $server;
-		$this->playerInfoConsumer = $playerInfoConsumer;
-		$this->authCallback = $authCallback;
-	}
+	public function __construct(
+		private Server $server,
+		private NetworkSession $session,
+		private \Closure $playerInfoConsumer,
+		private \Closure $authCallback
+	){}
 
 	public function handleLogin(LoginPacket $packet) : bool{
 		if(!$this->isCompatibleProtocol($packet->protocol)){
@@ -112,15 +96,10 @@ class LoginPacketHandler extends PacketHandler{
 		if(!Uuid::isValid($extraData->identity)){
 			throw new PacketHandlingException("Invalid login UUID");
 		}
-		if (isset($clientData->Waterdog_XUID)) {
-			$this->session->disconnect("bruh why u gotta join from waterdog seriously");
-			return true;
-		}
-
 		$uuid = Uuid::fromString($extraData->identity);
-		if(($xuid = $extraData->XUID) !== "" || ($xuid = (isset($clientData->Waterdog_XUID) && !$clientData->Waterdog_XUID === "") ? $clientData->Waterdog_XUID : "") !== ""){
+		if($extraData->XUID !== ""){
 			$playerInfo = new XboxLivePlayerInfo(
-				$xuid,
+				$extraData->XUID,
 				$extraData->displayName,
 				$uuid,
 				$skin,
@@ -140,7 +119,8 @@ class LoginPacketHandler extends PacketHandler{
 
 		$ev = new PlayerPreLoginEvent(
 			$playerInfo,
-			$this->session,
+			$this->session->getIp(),
+			$this->session->getPort(),
 			$this->server->requiresAuthentication()
 		);
 		if($this->server->getNetwork()->getConnectionCount() > $this->server->getMaxPlayers()){

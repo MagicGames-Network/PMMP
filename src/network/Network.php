@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -26,46 +26,40 @@ declare(strict_types=1);
  */
 namespace pocketmine\network;
 
-use function time;
-use const PHP_INT_MAX;
-use function get_class;
-use function preg_match;
-use function base64_encode;
-use function spl_object_id;
 use pocketmine\event\server\NetworkInterfaceRegisterEvent;
 use pocketmine\event\server\NetworkInterfaceUnregisterEvent;
+use pocketmine\utils\Utils;
+use function base64_encode;
+use function get_class;
+use function preg_match;
+use function spl_object_id;
+use function time;
+use const PHP_INT_MAX;
 
 class Network{
 	/** @var NetworkInterface[] */
-	private $interfaces = [];
+	private array $interfaces = [];
 
 	/** @var AdvancedNetworkInterface[] */
-	private $advancedInterfaces = [];
+	private array $advancedInterfaces = [];
 
 	/** @var RawPacketHandler[] */
-	private $rawPacketHandlers = [];
+	private array $rawPacketHandlers = [];
 
-	/** @var int[] */
-	private $bannedIps = [];
+	/**
+	 * @var int[]
+	 * @phpstan-var array<string, int>
+	 */
+	private array $bannedIps = [];
 
-	/** @var BidirectionalBandwidthStatsTracker */
-	private $bandwidthTracker;
+	private BidirectionalBandwidthStatsTracker $bandwidthTracker;
+	private string $name;
+	private NetworkSessionManager$sessionManager;
 
-	/** @var string */
-	private $name;
-
-	/** @var NetworkSessionManager */
-	private $sessionManager;
-
-	/** @var \Logger */
-	private $logger;
-
-	/** @var int */
-	private $delay;
-
-	public function __construct(\Logger $logger){
+	public function __construct(
+		private \Logger $logger
+	){
 		$this->sessionManager = new NetworkSessionManager();
-		$this->logger = $logger;
 		$this->bandwidthTracker = new BidirectionalBandwidthStatsTracker(5);
 	}
 
@@ -87,14 +81,11 @@ class Network{
 	}
 
 	public function tick() : void{
-		if ($this->delay++ >= 3) {
-			$this->delay = 0;
-			foreach($this->interfaces as $interface){
-				$interface->tick();
-			}
-	
-			$this->sessionManager->tick();
+		foreach($this->interfaces as $interface){
+			$interface->tick();
 		}
+
+		$this->sessionManager->tick();
 	}
 
 	/**
@@ -109,7 +100,7 @@ class Network{
 			if($interface instanceof AdvancedNetworkInterface){
 				$this->advancedInterfaces[$hash] = $interface;
 				$interface->setNetwork($this);
-				foreach($this->bannedIps as $ip => $until){
+				foreach(Utils::stringifyKeys($this->bannedIps) as $ip => $until){
 					$interface->blockAddress($ip);
 				}
 				foreach($this->rawPacketHandlers as $handler){

@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -96,7 +96,7 @@ class Lever extends Flowable{
 	}
 
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
-		if(!$blockClicked->isSolid()){
+		if(!$this->canBeSupportedBy($blockClicked, $face)){
 			return false;
 		}
 
@@ -120,19 +120,24 @@ class Lever extends Flowable{
 	}
 
 	public function onNearbyBlockChange() : void{
-		if(!$this->getSide(Facing::opposite($this->facing->getFacing()))->isSolid()){
+		$facing = $this->facing->getFacing();
+		if(!$this->canBeSupportedBy($this->getSide(Facing::opposite($facing)), $facing)){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}
 	}
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$this->activated = !$this->activated;
-		$this->position->getWorld()->setBlock($this->position, $this, false);
+		$this->position->getWorld()->setBlock($this->position, $this);
 		$this->position->getWorld()->addSound(
 			$this->position->add(0.5, 0.5, 0.5),
 			$this->activated ? new RedstonePowerOnSound() : new RedstonePowerOffSound()
 		);
 		return true;
+	}
+
+	private function canBeSupportedBy(Block $block, int $face) : bool{
+		return $block->getSupportType($face)->hasCenterSupport();
 	}
 
 	//TODO

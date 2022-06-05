@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -46,7 +46,7 @@ class ConcretePowder extends Opaque implements Fallable{
 			$ev = new BlockFormEvent($this, $block);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$this->position->getWorld()->setBlock($this->position, $ev->getNewState(), false);
+				$this->position->getWorld()->setBlock($this->position, $ev->getNewState());
 			}
 		}else{
 			$this->startFalling();

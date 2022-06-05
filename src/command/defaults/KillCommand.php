@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -63,7 +63,7 @@ class KillCommand extends VanillaCommand{
 			$player = $sender->getServer()->getPlayerByPrefix($args[0]);
 
 			if($player instanceof Player){
-				$player->attack(new EntityDamageEvent($player, EntityDamageEvent::CAUSE_SUICIDE, PHP_INT_MAX));
+				$player->attack(new EntityDamageEvent($player, EntityDamageEvent::CAUSE_SUICIDE, 1000));
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_kill_successful($player->getName()));
 			}else{
 				$sender->sendMessage(KnownTranslationFactory::commands_generic_player_notFound()->prefix(TextFormat::RED));
@@ -77,7 +77,7 @@ class KillCommand extends VanillaCommand{
 				return true;
 			}
 
-			$sender->attack(new EntityDamageEvent($sender, EntityDamageEvent::CAUSE_SUICIDE, PHP_INT_MAX));
+			$sender->attack(new EntityDamageEvent($sender, EntityDamageEvent::CAUSE_SUICIDE, 1000));
 			$sender->sendMessage(KnownTranslationFactory::commands_kill_successful($sender->getName()));
 		}else{
 			throw new InvalidCommandSyntaxException();

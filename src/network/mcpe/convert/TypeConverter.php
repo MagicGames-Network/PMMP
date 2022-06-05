@@ -1,4 +1,5 @@
 <?php
+
 /*
  *
  *  ____            _        _   __  __ _                  __  __ ____
@@ -16,41 +17,42 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\convert;
 
-use pocketmine\item\Item;
-use pocketmine\item\Durable;
-use pocketmine\item\ItemIds;
-use pocketmine\player\Player;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\player\GameMode;
-use pocketmine\item\ItemFactory;
-use pocketmine\nbt\NbtException;
-use pocketmine\item\VanillaItems;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\block\BlockLegacyIds;
-use pocketmine\utils\SingletonTrait;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\block\inventory\LoomInventory;
-use pocketmine\network\mcpe\InventoryManager;
 use pocketmine\block\inventory\AnvilInventory;
-use pocketmine\block\inventory\EnchantInventory;
 use pocketmine\block\inventory\CraftingTableInventory;
+use pocketmine\block\inventory\EnchantInventory;
+use pocketmine\block\inventory\LoomInventory;
+use pocketmine\block\inventory\StonecutterInventory;
+use pocketmine\inventory\transaction\action\CreateItemAction;
+use pocketmine\inventory\transaction\action\DestroyItemAction;
 use pocketmine\inventory\transaction\action\DropItemAction;
 use pocketmine\inventory\transaction\action\InventoryAction;
-use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
-use pocketmine\inventory\transaction\action\DestroyItemAction;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\types\recipe\RecipeIngredient;
+use pocketmine\item\Durable;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\item\ItemIds;
+use pocketmine\item\VanillaItems;
+use pocketmine\nbt\NbtException;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\network\mcpe\InventoryManager;
 use pocketmine\network\mcpe\protocol\types\GameMode as ProtocolGameMode;
-use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
+use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\network\mcpe\protocol\types\recipe\RecipeIngredient;
+use pocketmine\player\GameMode;
+use pocketmine\player\Player;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\SingletonTrait;
 
 class TypeConverter{
 	use SingletonTrait;
@@ -60,8 +62,7 @@ class TypeConverter{
 	private const PM_ID_TAG = "___Id___";
 	private const PM_META_TAG = "___Meta___";
 
-	/** @var int */
-	private $shieldRuntimeId;
+	private int $shieldRuntimeId;
 
 	public function __construct(){
 		//TODO: inject stuff via constructor
@@ -284,6 +285,7 @@ class TypeConverter{
 							$current instanceof AnvilInventory => UIInventorySlotOffset::ANVIL,
 							$current instanceof EnchantInventory => UIInventorySlotOffset::ENCHANTING_TABLE,
 							$current instanceof LoomInventory => UIInventorySlotOffset::LOOM,
+							$current instanceof StonecutterInventory => [UIInventorySlotOffset::STONE_CUTTER_INPUT => StonecutterInventory::SLOT_INPUT],
 							$current instanceof CraftingTableInventory => UIInventorySlotOffset::CRAFTING3X3_INPUT,
 							default => null
 						};

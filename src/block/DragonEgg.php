@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\Fallable;
 use pocketmine\block\utils\FallableTrait;
+use pocketmine\block\utils\SupportType;
 use pocketmine\event\block\BlockTeleportEvent;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
@@ -76,10 +77,14 @@ class DragonEgg extends Transparent implements Fallable{
 
 				$blockPos = $ev->getTo();
 				$this->position->getWorld()->addParticle($this->position, new DragonEggTeleportParticle($this->position->x - $blockPos->x, $this->position->y - $blockPos->y, $this->position->z - $blockPos->z));
-				$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR(), false);
-				$this->position->getWorld()->setBlock($blockPos, $this, false);
+				$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR());
+				$this->position->getWorld()->setBlock($blockPos, $this);
 				break;
 			}
 		}
+	}
+
+	public function getSupportType(int $facing) : SupportType{
+		return SupportType::NONE();
 	}
 }

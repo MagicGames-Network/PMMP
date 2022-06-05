@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -25,10 +25,10 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\block\Liquid;
-use pocketmine\math\Vector3;
-use pocketmine\player\Player;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\event\player\PlayerBucketFillEvent;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
 
 class Bucket extends Item{
 
@@ -46,7 +46,7 @@ class Bucket extends Item{
 			$ev = new PlayerBucketFillEvent($player, $blockReplace, $face, $this, $resultItem);
 			$ev->call();
 			if(!$ev->isCancelled()){
-				$player->getWorld()->setBlock($blockClicked->getPosition(), VanillaBlocks::AIR(), true);
+				$player->getWorld()->setBlock($blockClicked->getPosition(), VanillaBlocks::AIR());
 				$player->getWorld()->addSound($blockClicked->getPosition()->add(0.5, 0.5, 0.5), $blockClicked->getBucketFillSound());
 				if($player->hasFiniteResources()){
 					if($stack->getCount() === 0){

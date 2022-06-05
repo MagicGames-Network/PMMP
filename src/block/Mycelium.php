@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -55,7 +55,7 @@ class Mycelium extends Opaque{
 				$ev = new BlockSpreadEvent($block, $this, VanillaBlocks::MYCELIUM());
 				$ev->call();
 				if(!$ev->isCancelled()){
-					$this->position->getWorld()->setBlock($block->position, $ev->getNewState(), false);
+					$this->position->getWorld()->setBlock($block->position, $ev->getNewState());
 				}
 			}
 		}

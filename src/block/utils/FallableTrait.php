@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -51,7 +51,7 @@ trait FallableTrait{
 		$pos = $this->getPosition();
 		$down = $pos->getWorld()->getBlock($pos->getSide(Facing::DOWN));
 		if($down->getId() === BlockLegacyIds::AIR || $down instanceof Liquid || $down instanceof Fire){
-			$pos->getWorld()->setBlock($pos, VanillaBlocks::AIR(), true);
+			$pos->getWorld()->setBlock($pos, VanillaBlocks::AIR());
 
 			$block = $this;
 			if(!($block instanceof Block)) throw new AssumptionFailedError(__TRAIT__ . " should only be used by Blocks");

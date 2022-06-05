@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -101,7 +101,7 @@ class Sapling extends Flowable{
 				$this->grow(null);
 			}else{
 				$this->ready = true;
-				$this->position->getWorld()->setBlock($this->position, $this, false);
+				$this->position->getWorld()->setBlock($this->position, $this);
 			}
 		}
 	}

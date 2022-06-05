@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -123,7 +123,7 @@ class FallingBlock extends Entity{
 					$ev = new EntityBlockChangeEvent($this, $block, $blockTarget ?? $this->block);
 					$ev->call();
 					if(!$ev->isCancelled()){
-						$world->setBlock($pos, $ev->getTo(), false);
+						$world->setBlock($pos, $ev->getTo());
 					}
 				}
 				$hasUpdate = true;

@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -77,7 +77,7 @@ final class CoralBlock extends Opaque{
 				}
 			}
 			if(!$hasWater){
-				$world->setBlock($this->position, $this->setDead(true), false);
+				$world->setBlock($this->position, $this->setDead(true));
 			}
 		}
 	}

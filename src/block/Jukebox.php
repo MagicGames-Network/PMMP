@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -49,7 +49,7 @@ class Jukebox extends Opaque{
 			}
 		}
 
-		$this->position->getWorld()->setBlock($this->position, $this, false);
+		$this->position->getWorld()->setBlock($this->position, $this);
 
 		return true;
 	}

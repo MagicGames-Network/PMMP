@@ -17,31 +17,32 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use function min;
-use function count;
-use function gmp_add;
-use function gmp_and;
-use function gmp_mul;
-use function gmp_xor;
-use function mt_rand;
-use const PHP_INT_MAX;
-use function gmp_intval;
+use pocketmine\block\utils\BlockDataSerializer;
+use pocketmine\block\utils\SupportType;
+use pocketmine\event\block\StructureGrowEvent;
+use pocketmine\item\Bamboo as ItemBamboo;
+use pocketmine\item\Fertilizer;
 use pocketmine\item\Item;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
-use pocketmine\item\Fertilizer;
-use pocketmine\math\AxisAlignedBB;
 use pocketmine\world\BlockTransaction;
-use pocketmine\item\Bamboo as ItemBamboo;
-use pocketmine\event\block\StructureGrowEvent;
-use pocketmine\block\utils\BlockDataSerializer;
+use function count;
+use function gmp_add;
+use function gmp_and;
+use function gmp_intval;
+use function gmp_mul;
+use function gmp_xor;
+use function min;
+use function mt_rand;
+use const PHP_INT_MAX;
 
 class Bamboo extends Transparent{
 
@@ -98,6 +99,10 @@ class Bamboo extends Transparent{
 		//this places the BB at the northwest corner, not the center
 		$inset = 1 - (($this->thick ? 3 : 2) / 16);
 		return [AxisAlignedBB::one()->trim(Facing::SOUTH, $inset)->trim(Facing::EAST, $inset)];
+	}
+
+	public function getSupportType(int $facing) : SupportType{
+		return SupportType::NONE();
 	}
 
 	private static function getOffsetSeed(int $x, int $y, int $z) : int{
@@ -230,11 +235,11 @@ class Bamboo extends Transparent{
 		if($this->ready){
 			$this->ready = false;
 			if($world->getFullLight($this->position) < 9 || !$this->grow(self::getMaxHeight($this->position->getFloorX(), $this->position->getFloorZ()), 1, null)){
-				$world->setBlock($this->position, $this, false);
+				$world->setBlock($this->position, $this);
 			}
 		}elseif($world->getBlock($this->position->up())->canBeReplaced()){
 			$this->ready = true;
-			$world->setBlock($this->position, $this, false);
+			$world->setBlock($this->position, $this);
 		}
 	}
 }

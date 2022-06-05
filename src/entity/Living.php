@@ -17,61 +17,61 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\entity;
 
-use const M_PI;
-use function max;
-use function min;
-use function ceil;
-use function sqrt;
-use function atan2;
-use function count;
-use function floor;
-use function mt_rand;
-use function lcg_value;
-use function array_shift;
-use pocketmine\item\Item;
-use pocketmine\item\Armor;
-use function mt_getrandmax;
 use pocketmine\block\Block;
-use pocketmine\item\Durable;
-use pocketmine\math\Vector3;
-use pocketmine\utils\Binary;
-use pocketmine\player\Player;
-use pocketmine\nbt\tag\ListTag;
-use pocketmine\timings\Timings;
-use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\ShortTag;
-use pocketmine\math\VoxelRayTrace;
-use pocketmine\inventory\Inventory;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\block\BlockLegacyIds;
 use pocketmine\data\bedrock\EffectIdMap;
-use pocketmine\inventory\ArmorInventory;
-use pocketmine\world\sound\ItemBreakSound;
-use pocketmine\entity\effect\EffectManager;
-use pocketmine\world\sound\EntityLandSound;
-use pocketmine\entity\effect\EffectInstance;
-use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\event\entity\EntityDeathEvent;
-use pocketmine\entity\animation\HurtAnimation;
-use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\entity\animation\DeathAnimation;
+use pocketmine\entity\animation\HurtAnimation;
+use pocketmine\entity\animation\RespawnAnimation;
+use pocketmine\entity\effect\EffectInstance;
+use pocketmine\entity\effect\EffectManager;
+use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\event\entity\EntityDamageByChildEntityEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityDeathEvent;
+use pocketmine\inventory\ArmorInventory;
+use pocketmine\inventory\CallbackInventoryListener;
+use pocketmine\inventory\Inventory;
+use pocketmine\item\Armor;
+use pocketmine\item\Durable;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\item\Item;
+use pocketmine\math\Vector3;
+use pocketmine\math\VoxelRayTrace;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\ListTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\player\Player;
+use pocketmine\timings\Timings;
+use pocketmine\utils\Binary;
+use pocketmine\world\sound\EntityLandSound;
 use pocketmine\world\sound\EntityLongFallSound;
 use pocketmine\world\sound\EntityShortFallSound;
-use pocketmine\entity\animation\RespawnAnimation;
-use pocketmine\inventory\CallbackInventoryListener;
-use pocketmine\item\enchantment\VanillaEnchantments;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageByChildEntityEvent;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\world\sound\ItemBreakSound;
+use function array_shift;
+use function atan2;
+use function ceil;
+use function count;
+use function floor;
+use function lcg_value;
+use function max;
+use function min;
+use function mt_getrandmax;
+use function mt_rand;
+use function sqrt;
+use const M_PI;
 
 abstract class Living extends Entity{
 	protected const DEFAULT_BREATH_TICKS = 300;
@@ -85,7 +85,7 @@ abstract class Living extends Entity{
 	/** @var int */
 	public $deadTicks = 0;
 	/** @var int */
-	protected $maxDeadTicks = 0;
+	protected $maxDeadTicks = 25;
 
 	/** @var float */
 	protected $jumpVelocity = 0.42;
@@ -120,9 +120,6 @@ abstract class Living extends Entity{
 	protected $gliding = false;
 	/** @var bool */
 	protected $swimming = false;
-
-	/** @var int */
-	private $livingBaseEntityTick = 0;
 
 	abstract public function getName() : string;
 
@@ -378,10 +375,6 @@ abstract class Living extends Entity{
 	 */
 	public function getArmorPoints() : int{
 		$total = 0;
-		if ($this->armorInventory === null) {
-			return $total;
-		}
-
 		foreach($this->armorInventory->getContents() as $item){
 			$total += $item->getDefensePoints();
 		}
@@ -394,10 +387,6 @@ abstract class Living extends Entity{
 	 */
 	public function getHighestArmorEnchantmentLevel(Enchantment $enchantment) : int{
 		$result = 0;
-		if ($this->armorInventory === null) {
-			return $result;
-		}
-
 		foreach($this->armorInventory->getContents() as $item){
 			$result = max($result, $item->getEnchantmentLevel($enchantment));
 		}
@@ -503,7 +492,7 @@ abstract class Living extends Entity{
 		if($this->noDamageTicks > 0){
 			$source->cancel();
 		}
-		
+
 		if($this->effectManager->has(VanillaEffects::FIRE_RESISTANCE()) && (
 				$source->getCause() === EntityDamageEvent::CAUSE_FIRE
 				|| $source->getCause() === EntityDamageEvent::CAUSE_FIRE_TICK
@@ -537,18 +526,14 @@ abstract class Living extends Entity{
 			$e = $source->getChild();
 			if($e !== null){
 				$motion = $e->getMotion();
-				if ($this instanceof Human) {
-					$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
-				}
+				$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
 			}
 		}elseif($source instanceof EntityDamageByEntityEvent){
 			$e = $source->getDamager();
 			if($e !== null){
 				$deltaX = $this->location->x - $e->location->x;
 				$deltaZ = $this->location->z - $e->location->z;
-				if ($this instanceof Human) {
-					$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
-				}
+				$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
 			}
 		}
 
@@ -590,20 +575,24 @@ abstract class Living extends Entity{
 		$ev = new EntityDeathEvent($this, $this->getDrops(), $this->getXpDropAmount());
 		$ev->call();
 		foreach($ev->getDrops() as $item){
-			$this->getWorld()->dropItem($this->location->add(0, 1.3, 0), $item);
+			$this->getWorld()->dropItem($this->location, $item);
 		}
 
 		//TODO: check death conditions (must have been damaged by player < 5 seconds from death)
 		$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
 
 		$this->startDeathAnimation();
-		$this->endDeathAnimation();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
-		$this->endDeathAnimation();
+		if($this->deadTicks < $this->maxDeadTicks){
+			$this->deadTicks += $tickDiff;
+			if($this->deadTicks >= $this->maxDeadTicks){
+				$this->endDeathAnimation();
+			}
+		}
 
-		return false;
+		return $this->deadTicks >= $this->maxDeadTicks;
 	}
 
 	protected function startDeathAnimation() : void{
@@ -612,7 +601,6 @@ abstract class Living extends Entity{
 
 	protected function endDeathAnimation() : void{
 		$this->despawnFromAll();
-		$this->close();
 	}
 
 	protected function entityBaseTick(int $tickDiff = 1) : bool{
@@ -620,29 +608,24 @@ abstract class Living extends Entity{
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		$tickDiff = $tickDiff + 10;
-		if ($this->livingBaseEntityTick++ >= 10) {
-			$this->livingBaseEntityTick = 0;
+		if($this->isAlive()){
+			if($this->effectManager->tick($tickDiff)){
+				$hasUpdate = true;
+			}
 
-			if($this->isAlive()){
-				if($this->effectManager->tick($tickDiff)){
-					$hasUpdate = true;
-				}
-	
-				if($this->isInsideOfSolid()){
-					$hasUpdate = true;
-					$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
-					$this->attack($ev);
-				}
-	
-				if($this->doAirSupplyTick($tickDiff)){
-					$hasUpdate = true;
-				}
+			if($this->isInsideOfSolid()){
+				$hasUpdate = true;
+				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
+				$this->attack($ev);
+			}
+
+			if($this->doAirSupplyTick($tickDiff)){
+				$hasUpdate = true;
 			}
 		}
 
 		if($this->attackTime > 0){
-			$this->attackTime -= 10;
+			$this->attackTime -= $tickDiff;
 		}
 
 		Timings::$livingEntityBaseTick->stopTiming();

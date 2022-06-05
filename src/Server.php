@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -27,146 +27,146 @@ declare(strict_types=1);
  */
 namespace pocketmine;
 
-use function max;
-use function min;
-use const PHP_EOL;
-use function copy;
-use function date;
-use function time;
-use function trim;
-use function count;
-use function fopen;
-use function mkdir;
-use function round;
-use function sleep;
-use function touch;
-use function fclose;
-use function is_dir;
-use function rename;
-use function strlen;
-use function strval;
-use function ini_set;
-use function sprintf;
-use function stripos;
-use function strrpos;
-use const PHP_INT_MAX;
-use function is_array;
-use function realpath;
-use function array_sum;
-use function filemtime;
-use function get_class;
-use function is_object;
-use function is_string;
-use function microtime;
-use function str_repeat;
-use function strtolower;
-use function yaml_parse;
-use function file_exists;
-use function is_resource;
-use function json_decode;
-use function str_replace;
-use function zlib_decode;
-use function zlib_encode;
-use function ob_end_flush;
-use function preg_replace;
-use function base64_encode;
-use function spl_object_id;
-use pocketmine\utils\Utils;
-use pocketmine\world\World;
-use pocketmine\nbt\TreeRoot;
-use pocketmine\utils\Config;
-use Webmozart\PathUtil\Path;
-use const ZLIB_ENCODING_GZIP;
-use pocketmine\lang\Language;
-use pocketmine\player\Player;
-use pocketmine\plugin\Plugin;
-use pocketmine\utils\Process;
-use const DIRECTORY_SEPARATOR;
-use pocketmine\utils\Internet;
-use pocketmine\utils\Terminal;
-use Ramsey\Uuid\UuidInterface;
-use function file_get_contents;
-use function file_put_contents;
 use pocketmine\command\Command;
-use pocketmine\crash\CrashDump;
-use pocketmine\entity\Location;
-use pocketmine\network\Network;
-use pocketmine\player\GameMode;
-use pocketmine\promise\Promise;
-use pocketmine\timings\Timings;
-use const PTHREADS_INHERIT_NONE;
-use pocketmine\utils\Filesystem;
-use pocketmine\utils\MainLogger;
-use pocketmine\utils\TextFormat;
-use pocketmine\lang\Translatable;
-use pocketmine\player\PlayerInfo;
-use pocketmine\permission\BanList;
-use pocketmine\plugin\PluginOwned;
-use pocketmine\utils\NotCloneable;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\WorldManager;
-use function cli_set_process_title;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\scheduler\AsyncPool;
-use pocketmine\stats\SendUsageTask;
-use pocketmine\utils\SignalHandler;
-use pocketmine\nbt\NbtDataException;
-use pocketmine\player\OfflinePlayer;
-use pocketmine\plugin\PluginManager;
 use pocketmine\command\CommandSender;
-use pocketmine\plugin\PluginGraylist;
-use pocketmine\snooze\SleeperHandler;
-use pocketmine\updater\UpdateChecker;
-use pocketmine\utils\NotSerializable;
-use pocketmine\snooze\SleeperNotifier;
-use pocketmine\timings\TimingsHandler;
+use pocketmine\command\SimpleCommandMap;
+use pocketmine\console\ConsoleCommandSender;
+use pocketmine\console\ConsoleReaderThread;
+use pocketmine\crafting\CraftingManager;
+use pocketmine\crafting\CraftingManagerFromDataHelper;
+use pocketmine\crash\CrashDump;
 use pocketmine\crash\CrashDumpRenderer;
 use pocketmine\entity\EntityDataHelper;
-use pocketmine\network\query\QueryInfo;
-use pocketmine\plugin\PharPluginLoader;
-use pocketmine\promise\PromiseResolver;
-use function register_shutdown_function;
-use pocketmine\command\SimpleCommandMap;
-use pocketmine\crafting\CraftingManager;
+use pocketmine\entity\Location;
 use pocketmine\event\HandlerListManager;
-use pocketmine\plugin\PluginEnableOrder;
-use pocketmine\event\server\CommandEvent;
-use pocketmine\plugin\ScriptPluginLoader;
-use pocketmine\world\generator\Generator;
-use pocketmine\nbt\BigEndianNbtSerializer;
-use pocketmine\network\query\QueryHandler;
-use pocketmine\world\WorldCreationOptions;
-use pocketmine\console\ConsoleReaderThread;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\console\ConsoleCommandSender;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\event\player\PlayerLoginEvent;
-use pocketmine\permission\DefaultPermissions;
-use pocketmine\lang\LanguageNotFoundException;
-use pocketmine\network\mcpe\PacketBroadcaster;
 use pocketmine\event\player\PlayerCreationEvent;
 use pocketmine\event\player\PlayerDataSaveEvent;
+use pocketmine\event\player\PlayerLoginEvent;
+use pocketmine\event\server\CommandEvent;
 use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\world\generator\GeneratorManager;
 use pocketmine\event\server\QueryRegenerateEvent;
-use pocketmine\network\upnp\UPnPNetworkInterface;
-use pocketmine\resourcepacks\ResourcePackManager;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\compression\Compressor;
-use pocketmine\network\mcpe\raklib\RakLibInterface;
-use pocketmine\world\format\io\WorldProviderManager;
-use pocketmine\crafting\CraftingManagerFromDataHelper;
-use pocketmine\network\NetworkInterfaceStartException;
-use pocketmine\network\mcpe\compression\ZlibCompressor;
-use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\encryption\EncryptionContext;
-use pocketmine\network\mcpe\compression\CompressBatchTask;
-use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
-use pocketmine\network\query\DedicatedQueryNetworkInterface;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\lang\Language;
+use pocketmine\lang\LanguageNotFoundException;
+use pocketmine\lang\Translatable;
+use pocketmine\nbt\BigEndianNbtSerializer;
+use pocketmine\nbt\NbtDataException;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\compression\CompressBatchPromise;
-use pocketmine\world\generator\InvalidGeneratorOptionsException;
+use pocketmine\network\mcpe\compression\CompressBatchTask;
+use pocketmine\network\mcpe\compression\Compressor;
+use pocketmine\network\mcpe\compression\ZlibCompressor;
+use pocketmine\network\mcpe\encryption\EncryptionContext;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\PacketBroadcaster;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
+use pocketmine\network\mcpe\raklib\RakLibInterface;
+use pocketmine\network\Network;
+use pocketmine\network\NetworkInterfaceStartException;
+use pocketmine\network\query\DedicatedQueryNetworkInterface;
+use pocketmine\network\query\QueryHandler;
+use pocketmine\network\query\QueryInfo;
+use pocketmine\network\upnp\UPnPNetworkInterface;
+use pocketmine\permission\BanList;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\player\GameMode;
+use pocketmine\player\OfflinePlayer;
+use pocketmine\player\Player;
+use pocketmine\player\PlayerInfo;
+use pocketmine\plugin\PharPluginLoader;
+use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginEnableOrder;
+use pocketmine\plugin\PluginGraylist;
+use pocketmine\plugin\PluginManager;
+use pocketmine\plugin\PluginOwned;
+use pocketmine\plugin\ScriptPluginLoader;
+use pocketmine\promise\Promise;
+use pocketmine\promise\PromiseResolver;
+use pocketmine\resourcepacks\ResourcePackManager;
+use pocketmine\scheduler\AsyncPool;
+use pocketmine\snooze\SleeperHandler;
+use pocketmine\snooze\SleeperNotifier;
+use pocketmine\stats\SendUsageTask;
+use pocketmine\timings\Timings;
+use pocketmine\timings\TimingsHandler;
+use pocketmine\updater\UpdateChecker;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Config;
+use pocketmine\utils\Filesystem;
+use pocketmine\utils\Internet;
+use pocketmine\utils\MainLogger;
+use pocketmine\utils\NotCloneable;
+use pocketmine\utils\NotSerializable;
+use pocketmine\utils\Process;
+use pocketmine\utils\SignalHandler;
+use pocketmine\utils\Terminal;
+use pocketmine\utils\TextFormat;
+use pocketmine\utils\Utils;
+use pocketmine\world\format\Chunk;
+use pocketmine\world\format\io\WorldProviderManager;
 use pocketmine\world\format\io\WritableWorldProviderManagerEntry;
+use pocketmine\world\generator\Generator;
+use pocketmine\world\generator\GeneratorManager;
+use pocketmine\world\generator\InvalidGeneratorOptionsException;
+use pocketmine\world\World;
+use pocketmine\world\WorldCreationOptions;
+use pocketmine\world\WorldManager;
+use Ramsey\Uuid\UuidInterface;
+use Webmozart\PathUtil\Path;
+use function array_sum;
+use function base64_encode;
+use function cli_set_process_title;
+use function copy;
+use function count;
+use function date;
+use function fclose;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function filemtime;
+use function fopen;
+use function get_class;
+use function ini_set;
+use function is_array;
+use function is_dir;
+use function is_object;
+use function is_resource;
+use function is_string;
+use function json_decode;
+use function max;
+use function microtime;
+use function min;
+use function mkdir;
+use function ob_end_flush;
+use function preg_replace;
+use function realpath;
+use function register_shutdown_function;
+use function rename;
+use function round;
+use function sleep;
+use function spl_object_id;
+use function sprintf;
+use function str_repeat;
+use function str_replace;
+use function stripos;
+use function strlen;
+use function strrpos;
+use function strtolower;
+use function strval;
+use function time;
+use function touch;
+use function trim;
+use function yaml_parse;
+use function zlib_decode;
+use function zlib_encode;
+use const DIRECTORY_SEPARATOR;
+use const PHP_EOL;
+use const PHP_INT_MAX;
+use const PTHREADS_INHERIT_NONE;
+use const ZLIB_ENCODING_GZIP;
 
 /**
  * The class that manages everything
@@ -223,8 +223,6 @@ class Server{
 
 	private int $sendUsageTicker = 0;
 
-	private \AttachableThreadedLogger $logger;
-
 	private MemoryManager $memoryManager;
 
 	private ConsoleReaderThread $console;
@@ -249,7 +247,6 @@ class Server{
 
 	private UuidInterface $serverID;
 
-	private \DynamicClassLoader $autoloader;
 	private string $dataPath;
 	private string $pluginPath;
 
@@ -265,8 +262,6 @@ class Server{
 
 	/** @var Player[] */
 	private array $playerList = [];
-	/** @var Player[] */
-	private array $playerListByUsername = [];
 
 	private SignalHandler $signalHandler;
 
@@ -641,7 +636,14 @@ class Server{
 	 * Returns an online player with the given name (case insensitive), or null if not found.
 	 */
 	public function getPlayerExact(string $name) : ?Player{
-		return $this->playerListByUsername[strtolower($name)] ?? null;
+		$name = strtolower($name);
+		foreach($this->getOnlinePlayers() as $player){
+			if(strtolower($player->getName()) === $name){
+				return $player;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -761,7 +763,12 @@ class Server{
 		return self::$instance;
 	}
 
-	public function __construct(\DynamicClassLoader $autoloader, \AttachableThreadedLogger $logger, string $dataPath, string $pluginPath){
+	public function __construct(
+		private \DynamicClassLoader $autoloader,
+		private \AttachableThreadedLogger $logger,
+		string $dataPath,
+		string $pluginPath
+	){
 		if(self::$instance !== null){
 			throw new \LogicException("Only one server instance can exist at once");
 		}
@@ -769,8 +776,6 @@ class Server{
 		$this->startTime = microtime(true);
 
 		$this->tickSleeper = new SleeperHandler();
-		$this->autoloader = $autoloader;
-		$this->logger = $logger;
 
 		$this->signalHandler = new SignalHandler(function() : void{
 			$this->logger->info("Received signal interrupt, stopping the server");
@@ -856,7 +861,7 @@ class Server{
 					$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_server_devBuild_error3()));
 					$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_server_devBuild_error4("settings.enable-dev-builds")));
 					$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_server_devBuild_error5("https://github.com/pmmp/PocketMine-MP/releases")));
-					$this->forceShutdown();
+					$this->forceShutdownExit();
 
 					return;
 				}
@@ -971,7 +976,7 @@ class Server{
 				$pluginGraylist = PluginGraylist::fromArray(yaml_parse(file_get_contents($graylistFile)));
 			}catch(\InvalidArgumentException $e){
 				$this->logger->emergency("Failed to load $graylistFile: " . $e->getMessage());
-				$this->forceShutdown();
+				$this->forceShutdownExit();
 				return;
 			}
 			$this->pluginManager = new PluginManager($this, $this->configGroup->getPropertyBool("plugins.legacy-data-dir", true) ? null : Path::join($this->getDataPath(), "plugin_data"), $pluginGraylist);
@@ -1001,20 +1006,35 @@ class Server{
 			$loadErrorCount = 0;
 			$this->pluginManager->loadPlugins($this->pluginPath, $loadErrorCount);
 			if($loadErrorCount > 0){
-				$this->logger->emergency("Some plugins failed to load");
-				$this->forceShutdown();
+				$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_plugin_someLoadErrors()));
+				$this->forceShutdownExit();
 				return;
 			}
-			$this->enablePlugins(PluginEnableOrder::STARTUP());
+			if(!$this->enablePlugins(PluginEnableOrder::STARTUP())){
+				$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_plugin_someEnableErrors()));
+				$this->forceShutdownExit();
+				return;
+			}
 
 			if(!$this->startupPrepareWorlds()){
+				$this->forceShutdownExit();
 				return;
 			}
-			$this->enablePlugins(PluginEnableOrder::POSTWORLD());
+
+			if(!$this->enablePlugins(PluginEnableOrder::POSTWORLD())){
+				$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_plugin_someEnableErrors()));
+				$this->forceShutdownExit();
+				return;
+			}
 
 			if(!$this->startupPrepareNetworkInterfaces()){
-				$this->forceShutdown();
+				$this->forceShutdownExit();
 				return;
+			}
+
+			if($this->configGroup->getPropertyBool("anonymous-statistics.enabled", true)){
+				$this->sendUsageTicker = 6000;
+				$this->sendUsage(SendUsageTask::TYPE_OPEN);
 			}
 
 			$this->configGroup->save();
@@ -1069,13 +1089,21 @@ class Server{
 			return $generatorEntry->getGeneratorClass();
 		};
 
+		$anyWorldFailedToLoad = false;
+
 		foreach((array) $this->configGroup->getProperty("worlds", []) as $name => $options){
 			if($options === null){
 				$options = [];
 			}elseif(!is_array($options)){
+				//TODO: this probably should be an error
 				continue;
 			}
-			if(!$this->worldManager->loadWorld($name, true) && !$this->worldManager->isWorldGenerated($name)){
+			if(!$this->worldManager->loadWorld($name, true)){
+				if($this->worldManager->isWorldGenerated($name)){
+					//allow checking if other worlds are loadable, so the user gets all the errors in one go
+					$anyWorldFailedToLoad = true;
+					continue;
+				}
 				$creationOptions = WorldCreationOptions::create();
 				//TODO: error checking
 
@@ -1084,11 +1112,13 @@ class Server{
 
 				$generatorClass = $getGenerator($generatorName, $generatorOptions, $name);
 				if($generatorClass === null){
+					$anyWorldFailedToLoad = true;
 					continue;
 				}
 				$creationOptions->setGeneratorClass($generatorClass);
 				$creationOptions->setGeneratorOptions($generatorOptions);
 
+				$creationOptions->setDifficulty($this->getDifficulty());
 				if(isset($options["difficulty"]) && is_string($options["difficulty"])){
 					$creationOptions->setDifficulty(World::getDifficultyFromString($options["difficulty"]));
 				}
@@ -1111,33 +1141,39 @@ class Server{
 				$default = "world";
 				$this->configGroup->setConfigString("level-name", "world");
 			}
-			if(!$this->worldManager->loadWorld($default, true) && !$this->worldManager->isWorldGenerated($default)){
+			if(!$this->worldManager->loadWorld($default, true)){
+				if($this->worldManager->isWorldGenerated($default)){
+					$this->getLogger()->emergency($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_level_defaultError()));
+
+					return false;
+				}
 				$generatorName = $this->configGroup->getConfigString("level-type");
 				$generatorOptions = $this->configGroup->getConfigString("generator-settings");
 				$generatorClass = $getGenerator($generatorName, $generatorOptions, $default);
-				if($generatorClass !== null){
-					$creationOptions = WorldCreationOptions::create()
-						->setGeneratorClass($generatorClass)
-						->setGeneratorOptions($generatorOptions);
-					$convertedSeed = Generator::convertSeed($this->configGroup->getConfigString("level-seed"));
-					if($convertedSeed !== null){
-						$creationOptions->setSeed($convertedSeed);
-					}
-					$this->worldManager->generateWorld($default, $creationOptions);
+
+				if($generatorClass === null){
+					$this->getLogger()->emergency($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_level_defaultError()));
+					return false;
 				}
+				$creationOptions = WorldCreationOptions::create()
+					->setGeneratorClass($generatorClass)
+					->setGeneratorOptions($generatorOptions);
+				$convertedSeed = Generator::convertSeed($this->configGroup->getConfigString("level-seed"));
+				if($convertedSeed !== null){
+					$creationOptions->setSeed($convertedSeed);
+				}
+				$creationOptions->setDifficulty($this->getDifficulty());
+				$this->worldManager->generateWorld($default, $creationOptions);
 			}
 
 			$world = $this->worldManager->getWorldByName($default);
 			if($world === null){
-				$this->getLogger()->emergency($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_level_defaultError()));
-				$this->forceShutdown();
-
-				return false;
+				throw new AssumptionFailedError("We just loaded/generated the default world, so it must exist");
 			}
 			$this->worldManager->setDefaultWorld($world);
 		}
 
-		return true;
+		return !$anyWorldFailedToLoad;
 	}
 
 	private function startupPrepareConnectableNetworkInterfaces(string $ip, int $port, bool $ipV6, bool $useQuery) : bool{
@@ -1376,16 +1412,21 @@ class Server{
 		}
 	}
 
-	public function enablePlugins(PluginEnableOrder $type) : void{
+	public function enablePlugins(PluginEnableOrder $type) : bool{
+		$allSuccess = true;
 		foreach($this->pluginManager->getPlugins() as $plugin){
 			if(!$plugin->isEnabled() && $plugin->getDescription()->getOrder()->equals($type)){
-				$this->pluginManager->enablePlugin($plugin);
+				if(!$this->pluginManager->enablePlugin($plugin)){
+					$allSuccess = false;
+				}
 			}
 		}
 
 		if($type->equals(PluginEnableOrder::POSTWORLD())){
 			$this->commandMap->registerServerAliases();
 		}
+
+		return $allSuccess;
 	}
 
 	/**
@@ -1415,6 +1456,11 @@ class Server{
 		}
 	}
 
+	private function forceShutdownExit() : void{
+		$this->forceShutdown();
+		Process::kill(Process::pid(), true);
+	}
+
 	public function forceShutdown() : void{
 		if($this->hasStopped){
 			return;
@@ -1425,12 +1471,12 @@ class Server{
 		}
 
 		if($this->isRunning){
-			$this->logger->emergency("Forcing server shutdown");
+			$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_server_forcingShutdown()));
 		}
 		try{
-			//if(!$this->isRunning()){
-			//	$this->sendUsage(SendUsageTask::TYPE_CLOSE);
-			//}
+			if(!$this->isRunning()){
+				$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+			}
 
 			$this->hasStopped = true;
 
@@ -1549,9 +1595,9 @@ class Server{
 		if(!$this->isRunning){
 			return;
 		}
-		//if($this->sendUsageTicker > 0){
-		//	$this->sendUsage(SendUsageTask::TYPE_CLOSE);
-		//}
+		if($this->sendUsageTicker > 0){
+			$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+		}
 		$this->hasStopped = false;
 
 		ini_set("error_reporting", '0');
@@ -1685,11 +1731,10 @@ class Server{
 		}
 		$rawUUID = $player->getUniqueId()->getBytes();
 		$this->playerList[$rawUUID] = $player;
-		$this->playerListByUsername[strtolower($player->getName())] = $player;
 
-		//if($this->sendUsageTicker > 0){
-		//	$this->uniquePlayers[$rawUUID] = $rawUUID;
-		//}
+		if($this->sendUsageTicker > 0){
+			$this->uniquePlayers[$rawUUID] = $rawUUID;
+		}
 
 		return true;
 	}
@@ -1697,7 +1742,6 @@ class Server{
 	public function removeOnlinePlayer(Player $player) : void{
 		if(isset($this->playerList[$rawUUID = $player->getUniqueId()->getBytes()])){
 			unset($this->playerList[$rawUUID]);
-			unset($this->playerListByUsername[strtolower($player->getName())]);
 			foreach($this->playerList as $p){
 				$p->getNetworkSession()->onPlayerRemoved($player);
 			}
@@ -1777,7 +1821,7 @@ class Server{
 		$this->network->tick();
 		Timings::$connection->stopTiming();
 
-		if(($this->tickCounter % 300) === 0){
+		if(($this->tickCounter % 20) === 0){
 			if($this->doTitleTick){
 				$this->titleTick();
 			}
@@ -1792,22 +1836,22 @@ class Server{
 			$this->network->getBandwidthTracker()->rotateAverageHistory();
 		}
 
-		//if($this->sendUsageTicker > 0 && --$this->sendUsageTicker === 0){
-		//	$this->sendUsageTicker = 6000;
-		//	$this->sendUsage(SendUsageTask::TYPE_STATUS);
-		//}
+		if($this->sendUsageTicker > 0 && --$this->sendUsageTicker === 0){
+			$this->sendUsageTicker = 6000;
+			$this->sendUsage(SendUsageTask::TYPE_STATUS);
+		}
 
-		if(($this->tickCounter % 300) === 0){
+		if(($this->tickCounter % 100) === 0){
 			foreach($this->worldManager->getWorlds() as $world){
 				$world->clearCache();
 			}
 
-			//if($this->getTicksPerSecondAverage() < 12){
-			//	$this->logger->warning($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_server_tickOverload()));
-			//}
-
-			$this->getMemoryManager()->check();
+			if($this->getTicksPerSecondAverage() < 12){
+				$this->logger->warning($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_server_tickOverload()));
+			}
 		}
+
+		$this->getMemoryManager()->check();
 
 		Timings::$serverTick->stopTiming();
 

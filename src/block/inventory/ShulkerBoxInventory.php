@@ -17,21 +17,21 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\block\inventory;
 
-use pocketmine\item\Item;
-use pocketmine\world\Position;
-use pocketmine\world\sound\Sound;
-use pocketmine\block\BlockLegacyIds;
 use pocketmine\inventory\SimpleInventory;
-use pocketmine\world\sound\ShulkerBoxOpenSound;
-use pocketmine\world\sound\ShulkerBoxCloseSound;
+use pocketmine\item\Item;
+use pocketmine\item\ItemIds;
 use pocketmine\network\mcpe\protocol\BlockEventPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\world\Position;
+use pocketmine\world\sound\ShulkerBoxCloseSound;
+use pocketmine\world\sound\ShulkerBoxOpenSound;
+use pocketmine\world\sound\Sound;
 
 class ShulkerBoxInventory extends SimpleInventory implements BlockInventory{
 	use AnimatedBlockInventoryTrait;

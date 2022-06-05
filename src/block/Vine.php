@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -144,7 +144,7 @@ class Vine extends Flowable{
 			if(count($this->faces) === 0){
 				$this->position->getWorld()->useBreakOn($this->position);
 			}else{
-				$this->position->getWorld()->setBlock($this->position, $this, false);
+				$this->position->getWorld()->setBlock($this->position, $this);
 			}
 		}
 	}

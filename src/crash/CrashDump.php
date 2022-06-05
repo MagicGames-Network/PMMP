@@ -17,54 +17,54 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\crash;
 
-use const PHP_OS;
-use function max;
-use function file;
-use function ksort;
-use function strpos;
-use function substr;
-use function phpinfo;
-use function sprintf;
-use const PHP_VERSION;
-use const SORT_STRING;
-use function ob_start;
-use pocketmine\Server;
-use function microtime;
-use function php_uname;
-use function str_split;
-use function phpversion;
-use function file_exists;
-use function json_encode;
-use function zlib_encode;
-use function ob_end_clean;
-use function preg_replace;
-use function zend_version;
-use function base64_encode;
-use function mb_strtoupper;
-use pocketmine\utils\Utils;
-use pocketmine\VersionInfo;
-use function error_get_last;
-use Webmozart\PathUtil\Path;
-use function ob_get_contents;
-use const JSON_THROW_ON_ERROR;
 use Composer\InstalledVersions;
-use function file_get_contents;
-use const FILE_IGNORE_NEW_LINES;
-use const ZLIB_ENCODING_DEFLATE;
-use pocketmine\utils\Filesystem;
-use const JSON_UNESCAPED_SLASHES;
-use pocketmine\plugin\PluginBase;
-use function get_loaded_extensions;
-use pocketmine\plugin\PluginManager;
-use pocketmine\utils\AssumptionFailedError;
 use pocketmine\errorhandler\ErrorTypeToStringMap;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\plugin\PluginBase;
+use pocketmine\plugin\PluginManager;
+use pocketmine\Server;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Filesystem;
+use pocketmine\utils\Utils;
+use pocketmine\VersionInfo;
+use Webmozart\PathUtil\Path;
+use function base64_encode;
+use function error_get_last;
+use function file;
+use function file_exists;
+use function file_get_contents;
+use function get_loaded_extensions;
+use function json_encode;
+use function ksort;
+use function max;
+use function mb_strtoupper;
+use function microtime;
+use function ob_end_clean;
+use function ob_get_contents;
+use function ob_start;
+use function php_uname;
+use function phpinfo;
+use function phpversion;
+use function preg_replace;
+use function sprintf;
+use function str_split;
+use function strpos;
+use function substr;
+use function zend_version;
+use function zlib_encode;
+use const FILE_IGNORE_NEW_LINES;
+use const JSON_THROW_ON_ERROR;
+use const JSON_UNESCAPED_SLASHES;
+use const PHP_OS;
+use const PHP_VERSION;
+use const SORT_STRING;
+use const ZLIB_ENCODING_DEFLATE;
 
 class CrashDump{
 
@@ -80,18 +80,14 @@ class CrashDump{
 	public const PLUGIN_INVOLVEMENT_DIRECT = "direct";
 	public const PLUGIN_INVOLVEMENT_INDIRECT = "indirect";
 
-	/** @var Server */
-	private $server;
 	private CrashDumpData $data;
-	/** @var string */
-	private $encodedData;
+	private string $encodedData;
 
-	private ?PluginManager $pluginManager;
-
-	public function __construct(Server $server, ?PluginManager $pluginManager){
+	public function __construct(
+		private Server $server,
+		private ?PluginManager $pluginManager
+	){
 		$now = microtime(true);
-		$this->server = $server;
-		$this->pluginManager = $pluginManager;
 
 		$this->data = new CrashDumpData();
 		$this->data->format_version = self::FORMAT_VERSION;
@@ -199,12 +195,12 @@ class CrashDump{
 			}
 		}
 
-		//if(isset($lastError)){
-		//	if(isset($lastError["trace"])){
-		//		$lastError["trace"] = Utils::printableTrace($lastError["trace"]);
-		//	}
-		//	$this->data->lastError = $lastError;
-		//}
+		if(isset($lastError)){
+			if(isset($lastError["trace"])){
+				$lastError["trace"] = Utils::printableTrace($lastError["trace"]);
+			}
+			$this->data->lastError = $lastError;
+		}
 
 		$this->data->error = $error;
 		unset($this->data->error["fullFile"]);

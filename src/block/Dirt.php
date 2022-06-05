@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -64,7 +64,7 @@ class Dirt extends Opaque{
 
 			$newBlock = $this->coarse ? VanillaBlocks::DIRT() : VanillaBlocks::FARMLAND();
 			$this->position->getWorld()->addSound($this->position->add(0.5, 0.5, 0.5), new ItemUseOnBlockSound($newBlock));
-			$this->position->getWorld()->setBlock($this->position, $newBlock, false);
+			$this->position->getWorld()->setBlock($this->position, $newBlock);
 
 			return true;
 		}

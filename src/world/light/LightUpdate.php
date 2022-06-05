@@ -17,18 +17,18 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\world\light;
 
-use function max;
-use pocketmine\world\World;
-use pocketmine\world\format\SubChunk;
 use pocketmine\world\format\LightArray;
+use pocketmine\world\format\SubChunk;
 use pocketmine\world\utils\SubChunkExplorer;
 use pocketmine\world\utils\SubChunkExplorerStatus;
+use pocketmine\world\World;
+use function max;
 
 //TODO: make light updates asynchronous
 abstract class LightUpdate{
@@ -103,6 +103,7 @@ abstract class LightUpdate{
 			if($this->subChunkExplorer->moveTo($x, $y, $z) !== SubChunkExplorerStatus::INVALID){
 				$lightArray = $this->getCurrentLightArray();
 				$oldLevel = $lightArray->get($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
+
 				if($oldLevel !== $newLevel){
 					$lightArray->set($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK, $newLevel);
 					if($oldLevel < $newLevel){ //light increased

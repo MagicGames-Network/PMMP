@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -110,7 +110,7 @@ class TNT extends Opaque{
 	}
 
 	public function ignite(int $fuse = 80) : void{
-		$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR(), false);
+		$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR());
 
 		$mot = (new Random())->nextSignedFloat() * M_PI * 2;
 

@@ -17,15 +17,15 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\world;
 
-use function assert;
 use pocketmine\math\Vector3;
 use pocketmine\utils\AssumptionFailedError;
+use function assert;
 
 class Position extends Vector3{
 
@@ -39,9 +39,9 @@ class Position extends Vector3{
 	 */
 	public function __construct($x, $y, $z, ?World $world){
 		parent::__construct($x, $y, $z);
-		//if($world !== null && !$world->isLoaded()){
-		//	throw new \InvalidArgumentException("Specified world has been unloaded and cannot be used");
-		//}
+		if($world !== null && !$world->isLoaded()){
+			throw new \InvalidArgumentException("Specified world has been unloaded and cannot be used");
+		}
 
 		$this->world = $world;
 	}
@@ -66,9 +66,9 @@ class Position extends Vector3{
 	 * @throws AssumptionFailedError
 	 */
 	public function getWorld() : World{
-		//if($this->world === null || !$this->world->isLoaded()){
-		//	throw new AssumptionFailedError("Position world is null or has been unloaded");
-		//}
+		if($this->world === null || !$this->world->isLoaded()){
+			throw new AssumptionFailedError("Position world is null or has been unloaded");
+		}
 
 		return $this->world;
 	}

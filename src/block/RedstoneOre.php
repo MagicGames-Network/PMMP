@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -67,7 +67,7 @@ class RedstoneOre extends Opaque{
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if(!$this->lit){
 			$this->lit = true;
-			$this->position->getWorld()->setBlock($this->position, $this, false); //no return here - this shouldn't prevent block placement
+			$this->position->getWorld()->setBlock($this->position, $this); //no return here - this shouldn't prevent block placement
 		}
 		return false;
 	}
@@ -75,7 +75,7 @@ class RedstoneOre extends Opaque{
 	public function onNearbyBlockChange() : void{
 		if(!$this->lit){
 			$this->lit = true;
-			$this->position->getWorld()->setBlock($this->position, $this, false);
+			$this->position->getWorld()->setBlock($this->position, $this);
 		}
 	}
 
@@ -86,7 +86,7 @@ class RedstoneOre extends Opaque{
 	public function onRandomTick() : void{
 		if($this->lit){
 			$this->lit = false;
-			$this->position->getWorld()->setBlock($this->position, $this, false);
+			$this->position->getWorld()->setBlock($this->position, $this);
 		}
 	}
 

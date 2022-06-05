@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -46,7 +46,7 @@ class Effect{
 		protected Color $color,
 		protected bool $bad = false,
 		private int $defaultDuration = 600,
-		protected bool $hasBubbles = false
+		protected bool $hasBubbles = true
 	){}
 
 	/**
@@ -82,7 +82,7 @@ class Effect{
 	 * Returns whether this effect will give the subject potion bubbles.
 	 */
 	public function hasBubbles() : bool{
-		return false;
+		return $this->hasBubbles;
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Effect{
 	public function applyEffect(Living $entity, EffectInstance $instance, float $potency = 1.0, ?Entity $source = null) : void{
 
 	}
-	
+
 	/**
 	 * Applies effects to the entity when the effect is first added.
 	 */

@@ -17,22 +17,22 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\entity\object;
 
-use function sqrt;
-use pocketmine\entity\Human;
 use pocketmine\entity\Entity;
-use pocketmine\player\Player;
+use pocketmine\entity\EntitySizeInfo;
+use pocketmine\entity\Human;
 use pocketmine\entity\Location;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\entity\EntitySizeInfo;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\player\Player;
+use function sqrt;
 
 class ExperienceOrb extends Entity{
 
@@ -67,15 +67,13 @@ class ExperienceOrb extends Entity{
 	 * @return int[]
 	 */
 	public static function splitIntoOrbSizes(int $amount) : array{
-		//$result = [];
+		$result = [];
 
-		//while($amount > 0){
-		//	$size = self::getMaxOrbSize($amount);
-		//	$result[] = $size;
-		//	$amount -= $size;
-		//}
-
-		$result[] = $amount;
+		while($amount > 0){
+			$size = self::getMaxOrbSize($amount);
+			$result[] = $size;
+			$amount -= $size;
+		}
 
 		return $result;
 	}

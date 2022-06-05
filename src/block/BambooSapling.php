@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -116,11 +116,11 @@ final class BambooSapling extends Flowable{
 		if($this->ready){
 			$this->ready = false;
 			if($world->getFullLight($this->position) < 9 || !$this->grow(null)){
-				$world->setBlock($this->position, $this, false);
+				$world->setBlock($this->position, $this);
 			}
 		}elseif($world->getBlock($this->position->up())->canBeReplaced()){
 			$this->ready = true;
-			$world->setBlock($this->position, $this, false);
+			$world->setBlock($this->position, $this);
 		}
 	}
 

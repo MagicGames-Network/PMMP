@@ -17,16 +17,16 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\item;
 
-use pocketmine\player\Player;
 use pocketmine\entity\Location;
-use pocketmine\entity\projectile\Throwable;
 use pocketmine\entity\projectile\EnderPearl as EnderPearlEntity;
+use pocketmine\entity\projectile\Throwable;
+use pocketmine\player\Player;
 
 class EnderPearl extends ProjectileItem{
 

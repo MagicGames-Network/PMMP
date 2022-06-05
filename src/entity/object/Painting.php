@@ -17,7 +17,7 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
@@ -140,7 +140,7 @@ class Painting extends Entity{
 		return false;
 	}
 
-	public function updateMovement(bool $teleport = false) : void{
+	protected function updateMovement(bool $teleport = false) : void{
 
 	}
 

@@ -17,12 +17,23 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
-namespace pocketmine\event\entity;
+namespace pocketmine\block\inventory;
 
-class EntityArmorChangeEvent extends EntityInventoryChangeEvent{
+use pocketmine\inventory\SimpleInventory;
+use pocketmine\inventory\TemporaryInventory;
+use pocketmine\world\Position;
 
+class StonecutterInventory extends SimpleInventory implements BlockInventory, TemporaryInventory{
+	use BlockInventoryTrait;
+
+	public const SLOT_INPUT = 0;
+
+	public function __construct(Position $holder){
+		$this->holder = $holder;
+		parent::__construct(1);
+	}
 }
