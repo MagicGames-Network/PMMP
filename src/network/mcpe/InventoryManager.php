@@ -23,46 +23,46 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe;
 
-use pocketmine\block\inventory\AnvilInventory;
-use pocketmine\block\inventory\BlockInventory;
-use pocketmine\block\inventory\BrewingStandInventory;
-use pocketmine\block\inventory\CraftingTableInventory;
-use pocketmine\block\inventory\EnchantInventory;
-use pocketmine\block\inventory\FurnaceInventory;
-use pocketmine\block\inventory\HopperInventory;
-use pocketmine\block\inventory\LoomInventory;
-use pocketmine\block\inventory\StonecutterInventory;
+use function max;
+use function array_map;
+use function get_class;
+use pocketmine\item\Item;
+use function array_search;
+use function spl_object_id;
+use pocketmine\player\Player;
+use pocketmine\utils\ObjectSet;
+use pocketmine\inventory\Inventory;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\inventory\CreativeInventory;
-use pocketmine\inventory\Inventory;
-use pocketmine\inventory\transaction\action\SlotChangeAction;
-use pocketmine\inventory\transaction\InventoryTransaction;
-use pocketmine\item\Item;
-use pocketmine\network\mcpe\convert\TypeConversionException;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\protocol\ContainerClosePacket;
-use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
-use pocketmine\network\mcpe\protocol\ContainerSetDataPacket;
-use pocketmine\network\mcpe\protocol\CreativeContentPacket;
-use pocketmine\network\mcpe\protocol\InventoryContentPacket;
-use pocketmine\network\mcpe\protocol\InventorySlotPacket;
-use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\types\inventory\CreativeContentEntry;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\network\mcpe\protocol\types\inventory\WindowTypes;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\ObjectSet;
-use function array_map;
-use function array_search;
-use function get_class;
-use function max;
-use function spl_object_id;
+use pocketmine\block\inventory\LoomInventory;
+use pocketmine\block\inventory\AnvilInventory;
+use pocketmine\block\inventory\BlockInventory;
+use pocketmine\block\inventory\HopperInventory;
+use pocketmine\network\PacketHandlingException;
+use pocketmine\block\inventory\EnchantInventory;
+use pocketmine\block\inventory\FurnaceInventory;
+use pocketmine\network\mcpe\convert\TypeConverter;
+use pocketmine\block\inventory\StonecutterInventory;
+use pocketmine\block\inventory\BrewingStandInventory;
+use pocketmine\block\inventory\CraftingTableInventory;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
+use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
+use pocketmine\network\mcpe\protocol\InventorySlotPacket;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\network\mcpe\protocol\ContainerClosePacket;
+use pocketmine\network\mcpe\protocol\CreativeContentPacket;
+use pocketmine\network\mcpe\convert\TypeConversionException;
+use pocketmine\network\mcpe\protocol\ContainerSetDataPacket;
+use pocketmine\network\mcpe\protocol\InventoryContentPacket;
+use pocketmine\inventory\transaction\action\SlotChangeAction;
+use pocketmine\network\mcpe\protocol\types\inventory\WindowTypes;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\protocol\types\inventory\CreativeContentEntry;
+use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
 
 /**
  * @phpstan-type ContainerOpenClosure \Closure(int $id, Inventory $inventory) : (list<ClientboundPacket>|null)
@@ -269,11 +269,13 @@ class InventoryManager{
 		//initiated the close and expect an ack.
 		$this->session->sendDataPacket(ContainerClosePacket::create($id, false));
 
-		if($this->pendingOpenWindowCallback !== null && $id === $this->pendingCloseWindowId){
-			$this->session->getLogger()->debug("Opening deferred window after close ack of window $id");
+		if($this->pendingCloseWindowId === $id){
 			$this->pendingCloseWindowId = null;
-			($this->pendingOpenWindowCallback)();
-			$this->pendingOpenWindowCallback = null;
+			if($this->pendingOpenWindowCallback !== null){
+				$this->session->getLogger()->debug("Opening deferred window after close ack of window $id");
+				($this->pendingOpenWindowCallback)();
+				$this->pendingOpenWindowCallback = null;
+			}
 		}
 	}
 
