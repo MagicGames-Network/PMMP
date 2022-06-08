@@ -23,111 +23,113 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use pocketmine\block\BaseSign;
-use pocketmine\block\ItemFrame;
-use pocketmine\block\Lectern;
-use pocketmine\block\utils\SignText;
-use pocketmine\entity\animation\ConsumingItemAnimation;
-use pocketmine\entity\Attribute;
-use pocketmine\entity\InvalidSkinException;
-use pocketmine\event\player\PlayerEditBookEvent;
-use pocketmine\inventory\transaction\action\InventoryAction;
-use pocketmine\inventory\transaction\CraftingTransaction;
-use pocketmine\inventory\transaction\InventoryTransaction;
-use pocketmine\inventory\transaction\TransactionException;
-use pocketmine\inventory\transaction\TransactionValidationException;
-use pocketmine\item\VanillaItems;
-use pocketmine\item\WritableBook;
-use pocketmine\item\WritableBookPage;
-use pocketmine\item\WrittenBook;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\convert\TypeConversionException;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\InventoryManager;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\ActorEventPacket;
-use pocketmine\network\mcpe\protocol\ActorPickRequestPacket;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
-use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
-use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
-use pocketmine\network\mcpe\protocol\BookEditPacket;
-use pocketmine\network\mcpe\protocol\BossEventPacket;
-use pocketmine\network\mcpe\protocol\CommandBlockUpdatePacket;
-use pocketmine\network\mcpe\protocol\CommandRequestPacket;
-use pocketmine\network\mcpe\protocol\ContainerClosePacket;
-use pocketmine\network\mcpe\protocol\CraftingEventPacket;
-use pocketmine\network\mcpe\protocol\EmotePacket;
-use pocketmine\network\mcpe\protocol\InteractPacket;
-use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\ItemFrameDropItemPacket;
-use pocketmine\network\mcpe\protocol\LabTablePacket;
-use pocketmine\network\mcpe\protocol\LecternUpdatePacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacketV1;
-use pocketmine\network\mcpe\protocol\MapInfoRequestPacket;
-use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
-use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
-use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\network\mcpe\protocol\PlayerActionPacket;
-use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
-use pocketmine\network\mcpe\protocol\PlayerInputPacket;
-use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
-use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
-use pocketmine\network\mcpe\protocol\ServerSettingsRequestPacket;
-use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
-use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
-use pocketmine\network\mcpe\protocol\ShowCreditsPacket;
-use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
-use pocketmine\network\mcpe\protocol\SubClientLoginPacket;
-use pocketmine\network\mcpe\protocol\TextPacket;
-use pocketmine\network\mcpe\protocol\types\ActorEvent;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\ReleaseItemTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
-use pocketmine\network\mcpe\protocol\types\PlayerAction;
-use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
-use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
-use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\player\Player;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\Limits;
-use pocketmine\utils\TextFormat;
-use pocketmine\world\format\Chunk;
-use function array_push;
-use function base64_encode;
-use function count;
-use function fmod;
-use function implode;
-use function in_array;
-use function is_infinite;
-use function is_nan;
-use function json_decode;
-use function json_encode;
 use function max;
-use function mb_strlen;
-use function microtime;
-use function preg_match;
-use function sprintf;
+use function fmod;
+use function trim;
+use function count;
+use function is_nan;
 use function strlen;
 use function strpos;
 use function substr;
-use function trim;
+use function implode;
+use function is_bool;
+use function sprintf;
+use function in_array;
+use function mb_strlen;
+use function microtime;
+use function array_push;
+use function preg_match;
+use function is_infinite;
+use function json_decode;
+use function json_encode;
+use function base64_encode;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\utils\Limits;
+use pocketmine\block\Lectern;
+use pocketmine\player\Player;
 use const JSON_THROW_ON_ERROR;
+use pocketmine\block\BaseSign;
+use pocketmine\block\ItemFrame;
+use pocketmine\entity\Attribute;
+use pocketmine\item\WrittenBook;
+use pocketmine\utils\TextFormat;
+use pocketmine\item\VanillaItems;
+use pocketmine\item\WritableBook;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\world\format\Chunk;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\block\utils\SignText;
+use pocketmine\item\WritableBookPage;
+use pocketmine\entity\InvalidSkinException;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\network\mcpe\InventoryManager;
+use pocketmine\network\PacketHandlingException;
+use pocketmine\event\player\PlayerEditBookEvent;
+use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\EmotePacket;
+use pocketmine\network\mcpe\convert\TypeConverter;
+use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\BookEditPacket;
+use pocketmine\network\mcpe\protocol\InteractPacket;
+use pocketmine\network\mcpe\protocol\LabTablePacket;
+use pocketmine\network\mcpe\protocol\BossEventPacket;
+use pocketmine\network\mcpe\protocol\ActorEventPacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
+use pocketmine\network\mcpe\protocol\types\ActorEvent;
+use pocketmine\entity\animation\ConsumingItemAnimation;
+use pocketmine\network\mcpe\protocol\PlayerInputPacket;
+use pocketmine\network\mcpe\protocol\ShowCreditsPacket;
+use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
+use pocketmine\network\mcpe\protocol\PlayerActionPacket;
+use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
+use pocketmine\network\mcpe\protocol\types\PlayerAction;
+use pocketmine\inventory\transaction\CraftingTransaction;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\protocol\CraftingEventPacket;
+use pocketmine\network\mcpe\protocol\LecternUpdatePacket;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\inventory\transaction\TransactionException;
+use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
+use pocketmine\network\mcpe\protocol\CommandRequestPacket;
+use pocketmine\network\mcpe\protocol\ContainerClosePacket;
+use pocketmine\network\mcpe\protocol\MapInfoRequestPacket;
+use pocketmine\network\mcpe\protocol\RequestAbilityPacket;
+use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
+use pocketmine\network\mcpe\protocol\SubClientLoginPacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\inventory\transaction\action\InventoryAction;
+use pocketmine\network\mcpe\convert\TypeConversionException;
+use pocketmine\network\mcpe\protocol\ActorPickRequestPacket;
+use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\ItemFrameDropItemPacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacketV1;
+use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
+use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\CommandBlockUpdatePacket;
+use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
+use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
+use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
+use pocketmine\network\mcpe\protocol\ServerSettingsRequestPacket;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\inventory\transaction\TransactionValidationException;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
+use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\ReleaseItemTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 
 /**
  * This handler handles packets related to general gameplay.
@@ -612,6 +614,10 @@ class InGamePacketHandler extends PacketHandler{
 			case PlayerAction::CREATIVE_PLAYER_DESTROY_BLOCK:
 				//TODO: do we need to handle this?
 				break;
+			case PlayerAction::START_ITEM_USE_ON:
+			case PlayerAction::STOP_ITEM_USE_ON:
+				//TODO: this has no obvious use and seems only used for analytics in vanilla - ignore it
+				break;
 			default:
 				$this->session->getLogger()->debug("Unhandled/unknown player action type " . $action);
 				return false;
@@ -644,23 +650,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	public function handleAdventureSettings(AdventureSettingsPacket $packet) : bool{
-		if($packet->targetActorUniqueId !== $this->player->getId()){
-			return false; //TODO: operators can change other people's permissions using this
-		}
-
-		$handled = false;
-
-		$isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING);
-		if($isFlying !== $this->player->isFlying()){
-			if(!$this->player->toggleFlight($isFlying)){
-				$this->session->syncAdventureSettings($this->player);
-			}
-			$handled = true;
-		}
-
-		//TODO: check for other changes
-
-		return $handled;
+		return true; //no longer used, but the client still sends it for flight changes
 	}
 
 	public function handleBlockActorData(BlockActorDataPacket $packet) : bool{
@@ -981,5 +971,23 @@ class InGamePacketHandler extends PacketHandler{
 	public function handleEmote(EmotePacket $packet) : bool{
 		$this->player->emote($packet->getEmoteId());
 		return true;
+	}
+
+	public function handleRequestAbility(RequestAbilityPacket $packet) : bool{
+		if($packet->getAbilityId() === RequestAbilityPacket::ABILITY_FLYING){
+			$isFlying = $packet->getAbilityValue();
+			if(!is_bool($isFlying)){
+				throw new PacketHandlingException("Flying ability should always have a bool value");
+			}
+			if($isFlying !== $this->player->isFlying()){
+				if(!$this->player->toggleFlight($isFlying)){
+					$this->session->syncAdventureSettings($this->player);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 }
