@@ -27,7 +27,6 @@ use pocketmine\thread\Thread;
 use function time;
 
 class ServerKiller extends Thread{
-
 	private bool $stopped = false;
 
 	public function __construct(

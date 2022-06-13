@@ -53,7 +53,10 @@ class SayCommand extends VanillaCommand{
 			throw new InvalidCommandSyntaxException();
 		}
 
-		$sender->getServer()->broadcastMessage(" §e" . implode(" ", $args));
+		$sender->getServer()->broadcastMessage(KnownTranslationFactory::chat_type_announcement(
+			$sender instanceof Player ? $sender->getDisplayName() : ($sender instanceof ConsoleCommandSender ? "Server" : $sender->getName()),
+			implode(" ", $args)
+		)->prefix(TextFormat::LIGHT_PURPLE));
 		return true;
 	}
 }

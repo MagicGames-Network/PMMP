@@ -50,7 +50,6 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 		protected int $xpDrops = 0
 	){
 		parent::__construct($block);
-
 		$this->setDrops($drops);
 	}
 

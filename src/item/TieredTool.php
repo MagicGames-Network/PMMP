@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\item;
 
 abstract class TieredTool extends Tool{
-
 	protected ToolTier $tier;
 
 	public function __construct(ItemIdentifier $identifier, string $name, ToolTier $tier){

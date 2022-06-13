@@ -46,7 +46,6 @@ class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancellable{
 		protected string $message
 	){
 		$this->player = $player;
-		$this->message = $message;
 	}
 
 	public function getMessage() : string{

@@ -30,32 +30,29 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\sound\ThrowSound;
 
-abstract class ProjectileItem extends Item
-{
+abstract class ProjectileItem extends Item{
 
-	abstract public function getThrowForce(): float;
+	abstract public function getThrowForce() : float;
 
-	abstract protected function createEntity(Location $location, Player $thrower);
+	abstract protected function createEntity(Location $location, Player $thrower) : Throwable;
 
-	public function onClickAir(Player $player, Vector3 $directionVector): ItemUseResult
-	{
+	public function onClickAir(Player $player, Vector3 $directionVector) : ItemUseResult{
 		$location = $player->getLocation();
 
 		$projectile = $this->createEntity(Location::fromObject($player->getEyePos(), $player->getWorld(), $location->yaw, $location->pitch), $player);
-		if ($projectile instanceof Throwable) {
-			$projectile->setMotion($directionVector->multiply($this->getThrowForce()));
+		$projectile->setMotion($directionVector->multiply($this->getThrowForce()));
 
-			$projectileEv = new ProjectileLaunchEvent($projectile);
-			$projectileEv->call();
-			if ($projectileEv->isCancelled()) {
-				$projectile->flagForDespawn();
-				return ItemUseResult::FAIL();
-			}
-
-			$projectile->spawnToAll();
-
-			$location->getWorld()->addSound($location, new ThrowSound());
+		$projectileEv = new ProjectileLaunchEvent($projectile);
+		$projectileEv->call();
+		if($projectileEv->isCancelled()){
+			$projectile->flagForDespawn();
+			return ItemUseResult::FAIL();
 		}
+
+		$projectile->spawnToAll();
+
+		$location->getWorld()->addSound($location, new ThrowSound());
+
 		$this->pop();
 
 		return ItemUseResult::SUCCESS();

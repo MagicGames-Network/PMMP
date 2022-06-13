@@ -172,10 +172,10 @@ abstract class Furnace extends Spawnable implements Container, Nameable{
 		}
 
 		if($this->remainingFuelTime > 0){
-			$this->remainingFuelTime = $this->remainingFuelTime - 10;
+			--$this->remainingFuelTime;
 
 			if($smelt instanceof FurnaceRecipe && $canSmelt){
-				$this->cookTime = $this->cookTime + 10;
+				++$this->cookTime;
 
 				if($this->cookTime >= $furnaceType->getCookDurationTicks()){
 					$product = $smelt->getResult()->setCount($product->getCount() + 1);

@@ -39,7 +39,6 @@ class PlayerJoinEvent extends PlayerEvent{
 		protected Translatable|string $joinMessage
 	){
 		$this->player = $player;
-		$this->joinMessage = $joinMessage;
 	}
 
 	public function setJoinMessage(Translatable|string $joinMessage) : void{

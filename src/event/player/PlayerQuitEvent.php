@@ -37,7 +37,6 @@ use pocketmine\player\Player;
  * @see PlayerKickEvent
  */
 class PlayerQuitEvent extends PlayerEvent{
-
 	public function __construct(
 		Player $player,
 		protected Translatable|string $quitMessage,

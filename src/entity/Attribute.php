@@ -61,7 +61,6 @@ class Attribute{
 		if($minValue > $maxValue || $defaultValue > $maxValue || $defaultValue < $minValue){
 			throw new \InvalidArgumentException("Invalid ranges: min value: $minValue, max value: $maxValue, $defaultValue: $defaultValue");
 		}
-
 		$this->currentValue = $this->defaultValue;
 	}
 

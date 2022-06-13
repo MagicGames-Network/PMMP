@@ -27,7 +27,6 @@ use pocketmine\timings\Timings;
 use pocketmine\timings\TimingsHandler;
 
 class TaskHandler{
-
 	protected int $nextRun;
 
 	protected bool $cancelled = false;

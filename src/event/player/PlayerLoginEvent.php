@@ -40,7 +40,6 @@ class PlayerLoginEvent extends PlayerEvent implements Cancellable{
 		protected string $kickMessage
 	){
 		$this->player = $player;
-		$this->kickMessage = $kickMessage;
 	}
 
 	public function setKickMessage(string $kickMessage) : void{

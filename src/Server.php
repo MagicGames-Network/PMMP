@@ -1821,7 +1821,7 @@ class Server{
 		$this->network->tick();
 		Timings::$connection->stopTiming();
 
-		if(($this->tickCounter % 300) === 0){
+		if(($this->tickCounter % 20) === 0){
 			if($this->doTitleTick){
 				$this->titleTick();
 			}
@@ -1841,9 +1841,13 @@ class Server{
 			$this->sendUsage(SendUsageTask::TYPE_STATUS);
 		}
 
-		if(($this->tickCounter % 300) === 0){
+		if(($this->tickCounter % 100) === 0){
 			foreach($this->worldManager->getWorlds() as $world){
 				$world->clearCache();
+			}
+
+			if($this->getTicksPerSecondAverage() < 12){
+				$this->logger->warning($this->getLanguage()->translate(KnownTranslationFactory::pocketmine_server_tickOverload()));
 			}
 		}
 

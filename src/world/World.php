@@ -26,106 +26,106 @@ declare(strict_types=1);
  */
 namespace pocketmine\world;
 
-use const M_PI;
+use pocketmine\block\Air;
+use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
+use pocketmine\block\BlockTypeIds;
+use pocketmine\block\tile\Spawnable;
+use pocketmine\block\tile\Tile;
+use pocketmine\block\tile\TileFactory;
+use pocketmine\block\UnknownBlock;
+use pocketmine\block\VanillaBlocks;
+use pocketmine\data\bedrock\BiomeIds;
+use pocketmine\data\SavedDataLoadingException;
+use pocketmine\entity\Entity;
+use pocketmine\entity\EntityFactory;
+use pocketmine\entity\Location;
+use pocketmine\entity\object\ExperienceOrb;
+use pocketmine\entity\object\ItemEntity;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\block\BlockUpdateEvent;
+use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\world\ChunkLoadEvent;
+use pocketmine\event\world\ChunkPopulateEvent;
+use pocketmine\event\world\ChunkUnloadEvent;
+use pocketmine\event\world\SpawnChangeEvent;
+use pocketmine\event\world\WorldSaveEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemUseResult;
+use pocketmine\item\LegacyStringToItemParser;
+use pocketmine\item\StringToItemParser;
+use pocketmine\item\VanillaItems;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\player\Player;
+use pocketmine\promise\Promise;
+use pocketmine\promise\PromiseResolver;
+use pocketmine\scheduler\AsyncPool;
+use pocketmine\Server;
+use pocketmine\ServerConfigGroup;
+use pocketmine\timings\Timings;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Limits;
+use pocketmine\utils\ReversePriorityQueue;
+use pocketmine\world\biome\Biome;
+use pocketmine\world\biome\BiomeRegistry;
+use pocketmine\world\format\Chunk;
+use pocketmine\world\format\io\ChunkData;
+use pocketmine\world\format\io\exception\CorruptedChunkException;
+use pocketmine\world\format\io\WritableWorldProvider;
+use pocketmine\world\format\LightArray;
+use pocketmine\world\format\SubChunk;
+use pocketmine\world\generator\GeneratorManager;
+use pocketmine\world\generator\GeneratorRegisterTask;
+use pocketmine\world\generator\GeneratorUnregisterTask;
+use pocketmine\world\generator\PopulationTask;
+use pocketmine\world\light\BlockLightUpdate;
+use pocketmine\world\light\LightPopulationTask;
+use pocketmine\world\light\SkyLightUpdate;
+use pocketmine\world\particle\BlockBreakParticle;
+use pocketmine\world\particle\Particle;
+use pocketmine\world\sound\BlockPlaceSound;
+use pocketmine\world\sound\Sound;
+use pocketmine\world\utils\SubChunkExplorer;
 use function abs;
+use function array_filter;
+use function array_key_exists;
+use function array_map;
+use function array_merge;
+use function array_sum;
+use function assert;
 use function cos;
-use function max;
-use function min;
-use function is_a;
-use function trim;
 use function count;
 use function floor;
-use function assert;
-use function gettype;
-use function mt_rand;
-use const PHP_INT_MAX;
-use const PHP_INT_MIN;
-use pocketmine\Server;
-use function array_map;
-use function array_sum;
 use function get_class;
+use function gettype;
+use function is_a;
 use function is_object;
 use function lcg_value;
+use function max;
 use function microtime;
-use function preg_match;
-use function strtolower;
-use function array_merge;
-use pocketmine\block\Air;
-use pocketmine\item\Item;
-use function array_filter;
-use function spl_object_id;
-use pocketmine\block\Block;
-use pocketmine\math\Vector3;
-use pocketmine\utils\Limits;
+use function min;
 use function morton2d_decode;
 use function morton2d_encode;
 use function morton3d_decode;
 use function morton3d_encode;
-use pocketmine\entity\Entity;
-use pocketmine\player\Player;
-use function array_key_exists;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\block\tile\Tile;
-use pocketmine\entity\Location;
-use pocketmine\promise\Promise;
-use pocketmine\timings\Timings;
-use pocketmine\item\VanillaItems;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\ServerConfigGroup;
-use pocketmine\world\biome\Biome;
-use pocketmine\world\sound\Sound;
-use pocketmine\block\BlockFactory;
-use pocketmine\block\UnknownBlock;
-use pocketmine\item\ItemUseResult;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\world\format\Chunk;
-use pocketmine\block\VanillaBlocks;
-use pocketmine\scheduler\AsyncPool;
-use pocketmine\block\BlockLegacyIds;
-use pocketmine\block\tile\Spawnable;
-use pocketmine\entity\EntityFactory;
-use pocketmine\data\bedrock\BiomeIds;
-use pocketmine\world\format\SubChunk;
-use pocketmine\block\tile\TileFactory;
-use pocketmine\item\StringToItemParser;
-use pocketmine\promise\PromiseResolver;
-use pocketmine\world\format\LightArray;
-use pocketmine\world\particle\Particle;
-use pocketmine\entity\object\ItemEntity;
-use pocketmine\world\biome\BiomeRegistry;
-use pocketmine\world\format\io\ChunkData;
-use pocketmine\event\world\ChunkLoadEvent;
-use pocketmine\event\world\WorldSaveEvent;
-use pocketmine\utils\ReversePriorityQueue;
-use pocketmine\world\light\SkyLightUpdate;
-use pocketmine\entity\object\ExperienceOrb;
-use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\event\block\BlockPlaceEvent;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\world\sound\BlockPlaceSound;
-use pocketmine\event\block\BlockUpdateEvent;
-use pocketmine\event\world\ChunkUnloadEvent;
-use pocketmine\event\world\SpawnChangeEvent;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\world\light\BlockLightUpdate;
-use pocketmine\world\utils\SubChunkExplorer;
-use pocketmine\item\LegacyStringToItemParser;
-use pocketmine\data\SavedDataLoadingException;
-use pocketmine\event\world\ChunkPopulateEvent;
-use pocketmine\world\generator\PopulationTask;
-use pocketmine\world\light\LightPopulationTask;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\world\generator\GeneratorManager;
-use pocketmine\world\particle\BlockBreakParticle;
-use pocketmine\world\format\io\WritableWorldProvider;
-use pocketmine\world\generator\GeneratorRegisterTask;
-use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\world\generator\GeneratorUnregisterTask;
-use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
-use pocketmine\world\format\io\exception\CorruptedChunkException;
+use function mt_rand;
+use function preg_match;
+use function spl_object_id;
+use function strtolower;
+use function trim;
+use const M_PI;
+use const PHP_INT_MAX;
+use const PHP_INT_MIN;
 
 #include <rules/World.h>
 
@@ -133,8 +133,8 @@ class World implements ChunkManager{
 
 	private static int $worldIdCounter = 1;
 
-	public const Y_MAX = 256;
-	public const Y_MIN = 0;
+	public const Y_MAX = 320;
+	public const Y_MIN = -64;
 
 	public const TIME_DAY = 1000;
 	public const TIME_NOON = 6000;
@@ -281,16 +281,13 @@ class World implements ChunkManager{
 
 	private \Logger $logger;
 
-	/** @var int */
-	private $worldTick = 0;
-
 	public static function chunkHash(int $x, int $z) : int{
 		return morton2d_encode($x, $z);
 	}
 
 	private const MORTON3D_BIT_SIZE = 21;
 	private const BLOCKHASH_Y_BITS = 9;
-	private const BLOCKHASH_Y_PADDING = 128; //size (in blocks) of padding after both boundaries of the Y axis
+	private const BLOCKHASH_Y_PADDING = 64; //size (in blocks) of padding after both boundaries of the Y axis
 	private const BLOCKHASH_Y_OFFSET = self::BLOCKHASH_Y_PADDING - self::Y_MIN;
 	private const BLOCKHASH_Y_MASK = (1 << self::BLOCKHASH_Y_BITS) - 1;
 	private const BLOCKHASH_XZ_MASK = (1 << self::MORTON3D_BIT_SIZE) - 1;
@@ -447,7 +444,7 @@ class World implements ChunkManager{
 				continue;
 			}
 
-			if($block->getId() !== BlockLegacyIds::AIR){
+			if($block->getTypeId() !== BlockTypeIds::AIR){
 				$dontTickBlocks[$block->getTypeId()] = $name;
 			}
 		}
@@ -773,147 +770,125 @@ class World implements ChunkManager{
 	}
 
 	protected function actuallyDoTick(int $currentTick) : void{
-		$this->timings->entityTick->startTiming();
-		//Update entities/PLAYERS that need update
-		Timings::$tickEntity->startTiming();
-		foreach ($this->updateEntities as $id => $entity) {
-			if ($entity instanceof Player || $entity instanceof ItemEntity || $entity instanceof Throwable) {
-				if ($entity->isClosed() || !$entity->onUpdate($currentTick)) {
-					unset($this->updateEntities[$id]);
-				}
+		if(!$this->stopTime){
+			//this simulates an overflow, as would happen in any language which doesn't do stupid things to var types
+			if($this->time === PHP_INT_MAX){
+				$this->time = PHP_INT_MIN;
+			}else{
+				$this->time++;
 			}
-			if ($entity->isFlaggedForDespawn()) {
+		}
+
+		$this->sunAnglePercentage = $this->computeSunAnglePercentage(); //Sun angle depends on the current time
+		$this->skyLightReduction = $this->computeSkyLightReduction(); //Sky light reduction depends on the sun angle
+
+		if(++$this->sendTimeTicker === 200){
+			$this->sendTime();
+			$this->sendTimeTicker = 0;
+		}
+
+		$this->unloadChunks();
+		if(++$this->providerGarbageCollectionTicker >= 6000){
+			$this->provider->doGarbageCollection();
+			$this->providerGarbageCollectionTicker = 0;
+		}
+
+		//Do block updates
+		$this->timings->scheduledBlockUpdates->startTiming();
+
+		//Delayed updates
+		while($this->scheduledBlockUpdateQueue->count() > 0 && $this->scheduledBlockUpdateQueue->current()["priority"] <= $currentTick){
+			/** @var Vector3 $vec */
+			$vec = $this->scheduledBlockUpdateQueue->extract()["data"];
+			unset($this->scheduledBlockUpdateQueueIndex[World::blockHash($vec->x, $vec->y, $vec->z)]);
+			if(!$this->isInLoadedTerrain($vec)){
+				continue;
+			}
+			$block = $this->getBlock($vec);
+			$block->onScheduledUpdate();
+		}
+
+		//Normal updates
+		while($this->neighbourBlockUpdateQueue->count() > 0){
+			$index = $this->neighbourBlockUpdateQueue->dequeue();
+			unset($this->neighbourBlockUpdateQueueIndex[$index]);
+			World::getBlockXYZ($index, $x, $y, $z);
+			if(!$this->isChunkLoaded($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)){
+				continue;
+			}
+
+			$block = $this->getBlockAt($x, $y, $z);
+			$block->readStateFromWorld(); //for blocks like fences, force recalculation of connected AABBs
+
+			$ev = new BlockUpdateEvent($block);
+			$ev->call();
+			if(!$ev->isCancelled()){
+				foreach($this->getNearbyEntities(AxisAlignedBB::one()->offset($x, $y, $z)) as $entity){
+					$entity->onNearbyBlockChange();
+				}
+				$block->onNearbyBlockChange();
+			}
+		}
+
+		$this->timings->scheduledBlockUpdates->stopTiming();
+
+		$this->timings->entityTick->startTiming();
+		//Update entities that need update
+		Timings::$tickEntity->startTiming();
+		foreach($this->updateEntities as $id => $entity){
+			if($entity->isClosed() || $entity->isFlaggedForDespawn() || !$entity->onUpdate($currentTick)){
 				unset($this->updateEntities[$id]);
+			}
+			if($entity->isFlaggedForDespawn()){
 				$entity->close();
 			}
 		}
 		Timings::$tickEntity->stopTiming();
 		$this->timings->entityTick->stopTiming();
 
-		if ($this->worldTick++ >= 10) {
-			$this->worldTick = 0;
+		$this->timings->randomChunkUpdates->startTiming();
+		$this->tickChunks();
+		$this->timings->randomChunkUpdates->stopTiming();
 
-			if (!$this->stopTime) {
-				//this simulates an overflow, as would happen in any language which doesn't do stupid things to var types
-				if ($this->time === PHP_INT_MAX) {
-					$this->time = PHP_INT_MIN;
-				} else {
-					$this->time++;
-				}
-			}
+		$this->executeQueuedLightUpdates();
 
-			$this->sunAnglePercentage = $this->computeSunAnglePercentage(); //Sun angle depends on the current time
-			$this->skyLightReduction = $this->computeSkyLightReduction(); //Sky light reduction depends on the sun angle
-
-			if (++$this->sendTimeTicker === 200) {
-				$this->sendTime();
-				$this->sendTimeTicker = 0;
-			}
-
-			$this->unloadChunks();
-			if (++$this->providerGarbageCollectionTicker >= 6000) {
-				$this->provider->doGarbageCollection();
-				$this->providerGarbageCollectionTicker = 0;
-			}
-
-			//Do block updates
-			$this->timings->scheduledBlockUpdates->startTiming();
-
-			//Delayed updates
-			while ($this->scheduledBlockUpdateQueue->count() > 0 && $this->scheduledBlockUpdateQueue->current()["priority"] <= $currentTick) {
-				/** @var Vector3 $vec */
-				$vec = $this->scheduledBlockUpdateQueue->extract()["data"];
-				unset($this->scheduledBlockUpdateQueueIndex[World::blockHash($vec->x, $vec->y, $vec->z)]);
-				if (!$this->isInLoadedTerrain($vec)) {
-					continue;
-				}
-				$block = $this->getBlock($vec);
-				$block->onScheduledUpdate();
-			}
-
-			//Normal updates
-			while ($this->neighbourBlockUpdateQueue->count() > 0) {
-				$index = $this->neighbourBlockUpdateQueue->dequeue();
-				unset($this->neighbourBlockUpdateQueueIndex[$index]);
-				World::getBlockXYZ($index, $x, $y, $z);
-				if (!$this->isChunkLoaded($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)) {
-					continue;
-				}
-
-				$block = $this->getBlockAt($x, $y, $z);
-				$block->readStateFromWorld(); //for blocks like fences, force recalculation of connected AABBs
-
-				$ev = new BlockUpdateEvent($block);
-				$ev->call();
-				if (!$ev->isCancelled()) {
-					foreach ($this->getNearbyEntities(AxisAlignedBB::one()->offset($x, $y, $z)) as $entity) {
-						$entity->onNearbyBlockChange();
+		if(count($this->changedBlocks) > 0){
+			if(count($this->players) > 0){
+				foreach($this->changedBlocks as $index => $blocks){
+					if(count($blocks) === 0){ //blocks can be set normally and then later re-set with direct send
+						continue;
 					}
-					$block->onNearbyBlockChange();
-				}
-			}
-
-			$this->timings->scheduledBlockUpdates->stopTiming();
-
-			$this->timings->entityTick->startTiming();
-			//Update entities that need update
-			Timings::$tickEntity->startTiming();
-			foreach ($this->updateEntities as $id => $entity) {
-				if (!$entity->isClosed() || !$entity->isFlaggedForDespawn()) {
-					$entity->updateMovement();
-				}
-				if (!$entity instanceof Player) {
-					if ($entity->isClosed() || !$entity->onUpdate($currentTick)) {
-						unset($this->updateEntities[$id]);
-					}
-				}
-			}
-			Timings::$tickEntity->stopTiming();
-			$this->timings->entityTick->stopTiming();
-
-			$this->timings->randomChunkUpdates->startTiming();
-			$this->tickChunks();
-			$this->timings->randomChunkUpdates->stopTiming();
-
-			$this->executeQueuedLightUpdates();
-
-			if (count($this->changedBlocks) > 0) {
-				if (count($this->players) > 0) {
-					foreach ($this->changedBlocks as $index => $blocks) {
-						if (count($blocks) === 0) { //blocks can be set normally and then later re-set with direct send
-							continue;
+					World::getXZ($index, $chunkX, $chunkZ);
+					if(count($blocks) > 512){
+						$chunk = $this->getChunk($chunkX, $chunkZ);
+						foreach($this->getChunkPlayers($chunkX, $chunkZ) as $p){
+							$p->onChunkChanged($chunkX, $chunkZ, $chunk);
 						}
-						World::getXZ($index, $chunkX, $chunkZ);
-						if (count($blocks) > 512) {
-							$chunk = $this->getChunk($chunkX, $chunkZ);
-							foreach ($this->getChunkPlayers($chunkX, $chunkZ) as $p) {
-								$p->onChunkChanged($chunkX, $chunkZ, $chunk);
-							}
-						} else {
-							foreach ($this->createBlockUpdatePackets($blocks) as $packet) {
-								$this->broadcastPacketToPlayersUsingChunk($chunkX, $chunkZ, $packet);
-							}
+					}else{
+						foreach($this->createBlockUpdatePackets($blocks) as $packet){
+							$this->broadcastPacketToPlayersUsingChunk($chunkX, $chunkZ, $packet);
 						}
 					}
 				}
-
-				$this->changedBlocks = [];
 			}
 
-			if ($this->sleepTicks > 0 && --$this->sleepTicks <= 0) {
-				$this->checkSleep();
-			}
+			$this->changedBlocks = [];
 
-			foreach ($this->packetBuffersByChunk as $index => $entries) {
-				World::getXZ($index, $chunkX, $chunkZ);
-				$chunkPlayers = $this->getChunkPlayers($chunkX, $chunkZ);
-				if (count($chunkPlayers) > 0) {
-					$this->server->broadcastPackets($chunkPlayers, $entries);
-				}
-			}
-
-			$this->packetBuffersByChunk = [];
 		}
+
+		if($this->sleepTicks > 0 && --$this->sleepTicks <= 0){
+			$this->checkSleep();
+		}
+
+		foreach($this->packetBuffersByChunk as $index => $entries){
+			World::getXZ($index, $chunkX, $chunkZ);
+			$chunkPlayers = $this->getChunkPlayers($chunkX, $chunkZ);
+			if(count($chunkPlayers) > 0){
+				$this->server->broadcastPackets($chunkPlayers, $entries);
+			}
+		}
+
+		$this->packetBuffersByChunk = [];
 	}
 
 	public function checkSleep() : void{
@@ -1801,7 +1776,7 @@ class World implements ChunkManager{
 			return false;
 		}
 
-		if($blockClicked->getId() === BlockLegacyIds::AIR){
+		if($blockClicked->getTypeId() === BlockTypeIds::AIR){
 			return false;
 		}
 
@@ -1928,9 +1903,6 @@ class World implements ChunkManager{
 
 		foreach($this->getNearbyEntities($bb, $entity) as $ent){
 			if($ent->canBeCollidedWith() && ($entity === null || $entity->canCollideWith($ent))){
-				if ($ent instanceof Player && $ent->jump !== 0 && $ent->jump + 1 > time()) {
-					continue;
-				}
 				$nearby[] = $ent;
 			}
 		}
@@ -2679,7 +2651,7 @@ class World implements ChunkManager{
 		$x = (int) $v->x;
 		$z = (int) $v->z;
 		$y = (int) min($max - 2, $v->y);
-		$wasAir = $this->getBlockAt($x, $y - 1, $z)->getId() === BlockLegacyIds::AIR; //TODO: bad hack, clean up
+		$wasAir = $this->getBlockAt($x, $y - 1, $z)->getTypeId() === BlockTypeIds::AIR; //TODO: bad hack, clean up
 		for(; $y > $this->minY; --$y){
 			if($this->getBlockAt($x, $y, $z)->isFullCube()){
 				if($wasAir){

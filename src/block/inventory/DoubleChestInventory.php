@@ -41,7 +41,7 @@ class DoubleChestInventory extends BaseInventory implements BlockInventory, Inve
 		parent::__construct();
 	}
 
-	public function getInventory(): self{
+	public function getInventory() : self{
 		return $this;
 	}
 

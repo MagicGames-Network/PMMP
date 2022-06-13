@@ -32,7 +32,6 @@ use pocketmine\world\format\io\WorldData;
 use function file_exists;
 
 abstract class BaseNbtWorldData implements WorldData{
-
 	protected CompoundTag $compoundTag;
 
 	/**

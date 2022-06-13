@@ -67,7 +67,13 @@ class ExperienceOrb extends Entity{
 	 * @return int[]
 	 */
 	public static function splitIntoOrbSizes(int $amount) : array{
-		$result[] = $amount;
+		$result = [];
+
+		while($amount > 0){
+			$size = self::getMaxOrbSize($amount);
+			$result[] = $size;
+			$amount -= $size;
+		}
 
 		return $result;
 	}

@@ -33,7 +33,6 @@ use pocketmine\player\Player;
  * Represents an action causing a change in an inventory slot.
  */
 class SlotChangeAction extends InventoryAction{
-
 	public function __construct(
 		protected Inventory $inventory,
 		private int $inventorySlot,

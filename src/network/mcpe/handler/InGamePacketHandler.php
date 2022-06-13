@@ -23,113 +23,113 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use function max;
-use function fmod;
-use function trim;
+use pocketmine\block\BaseSign;
+use pocketmine\block\ItemFrame;
+use pocketmine\block\Lectern;
+use pocketmine\block\utils\SignText;
+use pocketmine\entity\animation\ConsumingItemAnimation;
+use pocketmine\entity\Attribute;
+use pocketmine\entity\InvalidSkinException;
+use pocketmine\event\player\PlayerEditBookEvent;
+use pocketmine\inventory\transaction\action\InventoryAction;
+use pocketmine\inventory\transaction\CraftingTransaction;
+use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\inventory\transaction\TransactionException;
+use pocketmine\inventory\transaction\TransactionValidationException;
+use pocketmine\item\VanillaItems;
+use pocketmine\item\WritableBook;
+use pocketmine\item\WritableBookPage;
+use pocketmine\item\WrittenBook;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\convert\TypeConversionException;
+use pocketmine\network\mcpe\convert\TypeConverter;
+use pocketmine\network\mcpe\InventoryManager;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\protocol\ActorEventPacket;
+use pocketmine\network\mcpe\protocol\ActorPickRequestPacket;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
+use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
+use pocketmine\network\mcpe\protocol\BookEditPacket;
+use pocketmine\network\mcpe\protocol\BossEventPacket;
+use pocketmine\network\mcpe\protocol\CommandBlockUpdatePacket;
+use pocketmine\network\mcpe\protocol\CommandRequestPacket;
+use pocketmine\network\mcpe\protocol\ContainerClosePacket;
+use pocketmine\network\mcpe\protocol\CraftingEventPacket;
+use pocketmine\network\mcpe\protocol\EmotePacket;
+use pocketmine\network\mcpe\protocol\InteractPacket;
+use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
+use pocketmine\network\mcpe\protocol\ItemFrameDropItemPacket;
+use pocketmine\network\mcpe\protocol\LabTablePacket;
+use pocketmine\network\mcpe\protocol\LecternUpdatePacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacketV1;
+use pocketmine\network\mcpe\protocol\MapInfoRequestPacket;
+use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
+use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
+use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\PlayerActionPacket;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
+use pocketmine\network\mcpe\protocol\PlayerInputPacket;
+use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
+use pocketmine\network\mcpe\protocol\RequestAbilityPacket;
+use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
+use pocketmine\network\mcpe\protocol\ServerSettingsRequestPacket;
+use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\ShowCreditsPacket;
+use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
+use pocketmine\network\mcpe\protocol\SubClientLoginPacket;
+use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\types\ActorEvent;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
+use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\ReleaseItemTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
+use pocketmine\network\mcpe\protocol\types\PlayerAction;
+use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
+use pocketmine\network\PacketHandlingException;
+use pocketmine\player\Player;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Limits;
+use pocketmine\utils\TextFormat;
+use pocketmine\world\format\Chunk;
+use function array_push;
+use function base64_encode;
 use function count;
+use function fmod;
+use function implode;
+use function in_array;
+use function is_bool;
+use function is_infinite;
 use function is_nan;
+use function json_decode;
+use function json_encode;
+use function max;
+use function mb_strlen;
+use function microtime;
+use function preg_match;
+use function sprintf;
 use function strlen;
 use function strpos;
 use function substr;
-use function implode;
-use function is_bool;
-use function sprintf;
-use function in_array;
-use function mb_strlen;
-use function microtime;
-use function array_push;
-use function preg_match;
-use function is_infinite;
-use function json_decode;
-use function json_encode;
-use function base64_encode;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector3;
-use pocketmine\utils\Limits;
-use pocketmine\block\Lectern;
-use pocketmine\player\Player;
+use function trim;
 use const JSON_THROW_ON_ERROR;
-use pocketmine\block\BaseSign;
-use pocketmine\block\ItemFrame;
-use pocketmine\entity\Attribute;
-use pocketmine\item\WrittenBook;
-use pocketmine\utils\TextFormat;
-use pocketmine\item\VanillaItems;
-use pocketmine\item\WritableBook;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\world\format\Chunk;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\block\utils\SignText;
-use pocketmine\item\WritableBookPage;
-use pocketmine\entity\InvalidSkinException;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\utils\AssumptionFailedError;
-use pocketmine\network\mcpe\InventoryManager;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\event\player\PlayerEditBookEvent;
-use pocketmine\network\mcpe\protocol\TextPacket;
-use pocketmine\network\mcpe\protocol\EmotePacket;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\network\mcpe\protocol\BookEditPacket;
-use pocketmine\network\mcpe\protocol\InteractPacket;
-use pocketmine\network\mcpe\protocol\LabTablePacket;
-use pocketmine\network\mcpe\protocol\BossEventPacket;
-use pocketmine\network\mcpe\protocol\ActorEventPacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
-use pocketmine\network\mcpe\protocol\types\ActorEvent;
-use pocketmine\entity\animation\ConsumingItemAnimation;
-use pocketmine\network\mcpe\protocol\PlayerInputPacket;
-use pocketmine\network\mcpe\protocol\ShowCreditsPacket;
-use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
-use pocketmine\network\mcpe\protocol\PlayerActionPacket;
-use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
-use pocketmine\network\mcpe\protocol\types\PlayerAction;
-use pocketmine\inventory\transaction\CraftingTransaction;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\protocol\CraftingEventPacket;
-use pocketmine\network\mcpe\protocol\LecternUpdatePacket;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\inventory\transaction\InventoryTransaction;
-use pocketmine\inventory\transaction\TransactionException;
-use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
-use pocketmine\network\mcpe\protocol\CommandRequestPacket;
-use pocketmine\network\mcpe\protocol\ContainerClosePacket;
-use pocketmine\network\mcpe\protocol\MapInfoRequestPacket;
-use pocketmine\network\mcpe\protocol\RequestAbilityPacket;
-use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
-use pocketmine\network\mcpe\protocol\SubClientLoginPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
-use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\inventory\transaction\action\InventoryAction;
-use pocketmine\network\mcpe\convert\TypeConversionException;
-use pocketmine\network\mcpe\protocol\ActorPickRequestPacket;
-use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
-use pocketmine\network\mcpe\protocol\ItemFrameDropItemPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacketV1;
-use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
-use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
-use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
-use pocketmine\network\mcpe\protocol\CommandBlockUpdatePacket;
-use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
-use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
-use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
-use pocketmine\network\mcpe\protocol\ServerSettingsRequestPacket;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\inventory\transaction\TransactionValidationException;
-use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
-use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
-use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
-use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\ReleaseItemTransactionData;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 
 /**
  * This handler handles packets related to general gameplay.
@@ -204,9 +204,13 @@ class InGamePacketHandler extends PacketHandler{
 
 		$sneaking = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
 		$sprinting = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
+		$swimming = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING);
+		$gliding = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING);
 		$mismatch =
 			($sneaking !== null && !$this->player->toggleSneak($sneaking)) |
-			($sprinting !== null && !$this->player->toggleSprint($sprinting));
+			($sprinting !== null && !$this->player->toggleSprint($sprinting)) |
+			($swimming !== null && !$this->player->toggleSwim($swimming)) |
+			($gliding !== null && !$this->player->toggleGlide($gliding));
 		if((bool) $mismatch){
 			$this->player->sendData([$this->player]);
 		}
@@ -215,18 +219,8 @@ class InGamePacketHandler extends PacketHandler{
 			$this->player->jump();
 		}
 
-		$rawPos = $packet->getPosition();
-		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
-		if ($this->player->getWorld()->getFolderName() === "MagicGames" || (!$this->forceMoveSync && $this->delay++ >= 20)) {
-			$this->delay = 0;
-
-			$yaw = fmod($packet->getYaw(), 360);
-			$pitch = fmod($packet->getPitch(), 360);
-			if ($yaw < 0) {
-				$yaw += 360;
-			}
-
-			$this->player->setRotation($yaw, $pitch);
+		if(!$this->forceMoveSync){
+			//TODO: this packet has WAYYYYY more useful information that we're not using
 			$this->player->handleMovement($newPos);
 		}
 

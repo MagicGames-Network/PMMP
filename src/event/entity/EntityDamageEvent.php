@@ -81,7 +81,7 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 		private array $modifiers = []
 	){
 		$this->entity = $entity;
-		$this->baseDamage = $this->originalBase = $damage - 2;
+		$this->baseDamage = $this->originalBase = $damage;
 		$this->originals = $modifiers;
 	}
 

@@ -36,7 +36,6 @@ class PlayerRespawnEvent extends PlayerEvent{
 		protected Position $position
 	){
 		$this->player = $player;
-		$this->position = $position;
 	}
 
 	public function getRespawnPosition() : Position{

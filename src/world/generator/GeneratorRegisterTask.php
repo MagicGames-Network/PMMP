@@ -27,7 +27,6 @@ use pocketmine\scheduler\AsyncTask;
 use pocketmine\world\World;
 
 class GeneratorRegisterTask extends AsyncTask{
-
 	public int $seed;
 	public int $worldId;
 	public int $worldMinY;

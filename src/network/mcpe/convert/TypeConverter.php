@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\convert;
 
-use pocketmine\block\BlockLegacyIds;
 use pocketmine\block\inventory\AnvilInventory;
 use pocketmine\block\inventory\CraftingTableInventory;
 use pocketmine\block\inventory\EnchantInventory;
 use pocketmine\block\inventory\LoomInventory;
 use pocketmine\block\inventory\StonecutterInventory;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
 use pocketmine\inventory\transaction\action\DropItemAction;
@@ -61,6 +61,8 @@ class TypeConverter{
 	private const DAMAGE_TAG_CONFLICT_RESOLUTION = "___Damage_ProtocolCollisionResolution___";
 	private const PM_ID_TAG = "___Id___";
 	private const PM_META_TAG = "___Meta___";
+
+	private const RECIPE_INPUT_WILDCARD_META = 0x7fff;
 
 	private int $shieldRuntimeId;
 
@@ -118,10 +120,15 @@ class TypeConverter{
 			return new RecipeIngredient(0, 0, 0);
 		}
 		if($itemStack->hasAnyDamageValue()){
-			[$id, ] = ItemTranslator::getInstance()->toNetworkId($itemStack->getId(), 0);
-			$meta = 0x7fff;
+			[$id, ] = ItemTranslator::getInstance()->toNetworkId(ItemFactory::getInstance()->get($itemStack->getId()));
+			$meta = self::RECIPE_INPUT_WILDCARD_META;
 		}else{
-			[$id, $meta] = ItemTranslator::getInstance()->toNetworkId($itemStack->getId(), $itemStack->getMeta());
+			[$id, $meta] = ItemTranslator::getInstance()->toNetworkId($itemStack);
+			if($id < 256){
+				//TODO: this is needed for block crafting recipes to work - we need to replace this with some kind of
+				//blockstate <-> meta mapping table so that we can remove the legacy code from the core
+				$meta = $itemStack->getMeta();
+			}
 		}
 		return new RecipeIngredient($id, $meta, $itemStack->getCount());
 	}
@@ -130,8 +137,17 @@ class TypeConverter{
 		if($ingredient->getId() === 0){
 			return VanillaItems::AIR();
 		}
-		[$id, $meta] = ItemTranslator::getInstance()->fromNetworkIdWithWildcardHandling($ingredient->getId(), $ingredient->getMeta());
-		return ItemFactory::getInstance()->get($id, $meta, $ingredient->getCount());
+
+		//TODO: this won't be handled properly for blockitems because a block runtimeID is expected rather than a meta value
+
+		if($ingredient->getMeta() === self::RECIPE_INPUT_WILDCARD_META){
+			$idItem = ItemTranslator::getInstance()->fromNetworkId($ingredient->getId(), 0, 0);
+			$result = ItemFactory::getInstance()->get($idItem->getId(), -1);
+		}else{
+			$result = ItemTranslator::getInstance()->fromNetworkId($ingredient->getId(), $ingredient->getMeta(), 0);
+		}
+		$result->setCount($ingredient->getCount());
+		return $result;
 	}
 
 	public function coreItemStackToNet(Item $itemStack) : ItemStack{
@@ -143,20 +159,18 @@ class TypeConverter{
 			$nbt = clone $itemStack->getNamedTag();
 		}
 
-		$isBlockItem = $itemStack->getId() < 256;
-
-		$idMeta = ItemTranslator::getInstance()->toNetworkIdQuiet($itemStack->getId(), $itemStack->getMeta());
+		$idMeta = ItemTranslator::getInstance()->toNetworkIdQuiet($itemStack);
 		if($idMeta === null){
 			//Display unmapped items as INFO_UPDATE, but stick something in their NBT to make sure they don't stack with
 			//other unmapped items.
-			[$id, $meta] = ItemTranslator::getInstance()->toNetworkId(ItemIds::INFO_UPDATE, 0);
+			[$id, $meta, $blockRuntimeId] = ItemTranslator::getInstance()->toNetworkId(VanillaBlocks::INFO_UPDATE()->asItem());
 			if($nbt === null){
 				$nbt = new CompoundTag();
 			}
 			$nbt->setInt(self::PM_ID_TAG, $itemStack->getId());
 			$nbt->setInt(self::PM_META_TAG, $itemStack->getMeta());
 		}else{
-			[$id, $meta] = $idMeta;
+			[$id, $meta, $blockRuntimeId] = $idMeta;
 
 			if($itemStack instanceof Durable && $itemStack->getDamage() > 0){
 				if($nbt !== null){
@@ -168,22 +182,6 @@ class TypeConverter{
 					$nbt = new CompoundTag();
 				}
 				$nbt->setInt(self::DAMAGE_TAG, $itemStack->getDamage());
-			}elseif($isBlockItem && $itemStack->getMeta() !== 0){
-				//TODO HACK: This foul-smelling code ensures that we can correctly deserialize an item when the
-				//client sends it back to us, because as of 1.16.220, blockitems quietly discard their metadata
-				//client-side. Aside from being very annoying, this also breaks various server-side behaviours.
-				if($nbt === null){
-					$nbt = new CompoundTag();
-				}
-				$nbt->setInt(self::PM_META_TAG, $itemStack->getMeta());
-			}
-		}
-
-		$blockRuntimeId = 0;
-		if($isBlockItem){
-			$block = $itemStack->getBlock();
-			if($block->getId() !== BlockLegacyIds::AIR){
-				$blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($block->getFullId());
 			}
 		}
 
@@ -208,13 +206,21 @@ class TypeConverter{
 		}
 		$compound = $itemStack->getNbt();
 
-		[$id, $meta] = ItemTranslator::getInstance()->fromNetworkId($itemStack->getId(), $itemStack->getMeta());
+		$itemResult = ItemTranslator::getInstance()->fromNetworkId($itemStack->getId(), $itemStack->getMeta(), $itemStack->getBlockRuntimeId());
 
 		if($compound !== null){
 			$compound = clone $compound;
-			if(($idTag = $compound->getTag(self::PM_ID_TAG)) instanceof IntTag){
-				$id = $idTag->getValue();
-				$compound->removeTag(self::PM_ID_TAG);
+
+			$id = $meta = null;
+			if($itemResult->getId() === ItemIds::INFO_UPDATE && $itemResult->getMeta() === 0){
+				if(($idTag = $compound->getTag(self::PM_ID_TAG)) instanceof IntTag){
+					$id = $idTag->getValue();
+					$compound->removeTag(self::PM_ID_TAG);
+				}
+				if(($metaTag = $compound->getTag(self::PM_META_TAG)) instanceof IntTag){
+					$meta = $metaTag->getValue();
+					$compound->removeTag(self::PM_META_TAG);
+				}
 			}
 			if(($damageTag = $compound->getTag(self::DAMAGE_TAG)) instanceof IntTag){
 				$meta = $damageTag->getValue();
@@ -223,34 +229,31 @@ class TypeConverter{
 					$compound->removeTag(self::DAMAGE_TAG_CONFLICT_RESOLUTION);
 					$compound->setTag(self::DAMAGE_TAG, $conflicted);
 				}
-			}elseif(($metaTag = $compound->getTag(self::PM_META_TAG)) instanceof IntTag){
-				//TODO HACK: This foul-smelling code ensures that we can correctly deserialize an item when the
-				//client sends it back to us, because as of 1.16.220, blockitems quietly discard their metadata
-				//client-side. Aside from being very annoying, this also breaks various server-side behaviours.
-				$meta = $metaTag->getValue();
-				$compound->removeTag(self::PM_META_TAG);
 			}
 			if($compound->count() === 0){
 				$compound = null;
 			}
-		}
-		if($id < -0x8000 || $id >= 0x7fff){
-			throw new TypeConversionException("Item ID must be in range " . -0x8000 . " ... " . 0x7fff . " (received $id)");
-		}
-		if($meta < 0 || $meta >= 0x7fff){ //this meta value may have been restored from the NBT
-			throw new TypeConversionException("Item meta must be in range 0 ... " . 0x7fff . " (received $meta)");
+			if($meta !== null){
+				if($id !== null && ($id < -0x8000 || $id >= 0x7fff)){
+					throw new TypeConversionException("Item ID must be in range " . -0x8000 . " ... " . 0x7fff . " (received $id)");
+				}
+				if($meta < 0 || $meta >= 0x7fff){ //this meta value may have been restored from the NBT
+					throw new TypeConversionException("Item meta must be in range 0 ... " . 0x7fff . " (received $meta)");
+				}
+				$itemResult = ItemFactory::getInstance()->get($id ?? $itemResult->getId(), $meta);
+			}
 		}
 
-		try{
-			return ItemFactory::getInstance()->get(
-				$id,
-				$meta,
-				$itemStack->getCount(),
-				$compound
-			);
-		}catch(NbtException $e){
-			throw TypeConversionException::wrap($e, "Bad itemstack NBT data");
+		$itemResult->setCount($itemStack->getCount());
+		if($compound !== null){
+			try{
+				$itemResult->setNamedTag($compound);
+			}catch(NbtException $e){
+				throw TypeConversionException::wrap($e, "Bad itemstack NBT data");
+			}
 		}
+
+		return $itemResult;
 	}
 
 	/**

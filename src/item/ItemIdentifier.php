@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
-final class ItemIdentifier{
+class ItemIdentifier{
 	private int $id;
 	private int $meta;
 

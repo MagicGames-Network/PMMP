@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\entity;
 
 use pocketmine\block\Block;
-use pocketmine\block\BlockLegacyIds;
+use pocketmine\block\BlockTypeIds;
 use pocketmine\data\bedrock\EffectIdMap;
 use pocketmine\entity\animation\DeathAnimation;
 use pocketmine\entity\animation\HurtAnimation;
@@ -100,9 +100,6 @@ abstract class Living extends Entity{
 	protected bool $sneaking = false;
 	protected bool $gliding = false;
 	protected bool $swimming = false;
-
-	/** @var int */
-	private $livingBaseEntityTick = 0;
 
 	protected function getInitialDragMultiplier() : float{ return 0.02; }
 
@@ -349,7 +346,7 @@ abstract class Living extends Entity{
 				new EntityLongFallSound($this) :
 				new EntityShortFallSound($this)
 			);
-		}elseif($fallBlock->getId() !== BlockLegacyIds::AIR){
+		}elseif($fallBlock->getTypeId() !== BlockTypeIds::AIR){
 			$this->broadcastSound(new EntityLandSound($this, $fallBlock));
 		}
 		return $newVerticalVelocity;
@@ -513,18 +510,14 @@ abstract class Living extends Entity{
 			$e = $source->getChild();
 			if($e !== null){
 				$motion = $e->getMotion();
-				if ($this instanceof Human) {
-					$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
-				}
+				$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
 			}
 		}elseif($source instanceof EntityDamageByEntityEvent){
 			$e = $source->getDamager();
 			if($e !== null){
 				$deltaX = $this->location->x - $e->location->x;
 				$deltaZ = $this->location->z - $e->location->z;
-				if ($this instanceof Human) {
-					$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
-				}
+				$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
 			}
 		}
 
@@ -573,12 +566,17 @@ abstract class Living extends Entity{
 		$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
 
 		$this->startDeathAnimation();
-		$this->endDeathAnimation();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
-		$this->endDeathAnimation();
-		return false;
+		if($this->deadTicks < $this->maxDeadTicks){
+			$this->deadTicks += $tickDiff;
+			if($this->deadTicks >= $this->maxDeadTicks){
+				$this->endDeathAnimation();
+			}
+		}
+
+		return $this->deadTicks >= $this->maxDeadTicks;
 	}
 
 	protected function startDeathAnimation() : void{
@@ -587,7 +585,6 @@ abstract class Living extends Entity{
 
 	protected function endDeathAnimation() : void{
 		$this->despawnFromAll();
-		$this->close();
 	}
 
 	protected function entityBaseTick(int $tickDiff = 1) : bool{
@@ -595,23 +592,19 @@ abstract class Living extends Entity{
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		$tickDiff = $tickDiff + 10;
-		if ($this->livingBaseEntityTick++ >= 10) {
-			$this->livingBaseEntityTick = 0;
-			if($this->isAlive()){
-				if($this->effectManager->tick($tickDiff)){
-					$hasUpdate = true;
-				}
-	
-				if($this->isInsideOfSolid()){
-					$hasUpdate = true;
-					$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
-					$this->attack($ev);
-				}
-	
-				if($this->doAirSupplyTick($tickDiff)){
-					$hasUpdate = true;
-				}
+		if($this->isAlive()){
+			if($this->effectManager->tick($tickDiff)){
+				$hasUpdate = true;
+			}
+
+			if($this->isInsideOfSolid()){
+				$hasUpdate = true;
+				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
+				$this->attack($ev);
+			}
+
+			if($this->doAirSupplyTick($tickDiff)){
+				$hasUpdate = true;
 			}
 		}
 
@@ -763,10 +756,10 @@ abstract class Living extends Entity{
 				--$nextIndex;
 			}
 
-			$id = $block->getId();
+			$id = $block->getTypeId();
 
 			if($transparent === null){
-				if($id !== BlockLegacyIds::AIR){
+				if($id !== BlockTypeIds::AIR){
 					break;
 				}
 			}else{

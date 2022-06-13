@@ -46,7 +46,7 @@ class Effect{
 		protected Color $color,
 		protected bool $bad = false,
 		private int $defaultDuration = 600,
-		protected bool $hasBubbles = false
+		protected bool $hasBubbles = true
 	){}
 
 	/**
@@ -82,7 +82,7 @@ class Effect{
 	 * Returns whether this effect will give the subject potion bubbles.
 	 */
 	public function hasBubbles() : bool{
-		return false;
+		return $this->hasBubbles;
 	}
 
 	/**

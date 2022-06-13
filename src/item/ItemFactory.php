@@ -84,23 +84,10 @@ class ItemFactory{
 		$this->register(new Clownfish(new IID(Ids::CLOWNFISH, 0), "Clownfish"));
 		$this->register(new Coal(new IID(Ids::COAL, 0), "Coal"));
 
-		foreach([
-			0 => CoralType::TUBE(),
-			1 => CoralType::BRAIN(),
-			2 => CoralType::BUBBLE(),
-			3 => CoralType::FIRE(),
-			4 => CoralType::HORN()
-		] as $meta => $coralType){
-			$this->register(new ItemBlockWallOrFloor(
-				new IID(Ids::CORAL_FAN, $meta),
-				Blocks::CORAL_FAN()->setCoralType($coralType)->setDead(false),
-				Blocks::WALL_CORAL_FAN()->setCoralType($coralType)->setDead(false)
-			), true);
-			$this->register(new ItemBlockWallOrFloor(
-				new IID(Ids::CORAL_FAN_DEAD, $meta),
-				Blocks::CORAL_FAN()->setCoralType($coralType)->setDead(true),
-				Blocks::WALL_CORAL_FAN()->setCoralType($coralType)->setDead(true)
-			), true);
+		$identifier = new ItemIdentifierFlattened(Ids::CORAL_FAN, 0, [Ids::CORAL_FAN_DEAD]);
+		foreach(CoralType::getAll() as $coralType){
+			$this->register((new CoralFan($identifier))->setCoralType($coralType)->setDead(false), true);
+			$this->register((new CoralFan($identifier))->setCoralType($coralType)->setDead(true), true);
 		}
 
 		$this->register(new Coal(new IID(Ids::COAL, 1), "Charcoal"));

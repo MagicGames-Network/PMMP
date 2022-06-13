@@ -41,7 +41,6 @@ use function preg_match;
 use function strlen;
 
 class ZippedResourcePack implements ResourcePack{
-
 	protected string $path;
 	protected Manifest $manifest;
 	protected ?string $sha256 = null;

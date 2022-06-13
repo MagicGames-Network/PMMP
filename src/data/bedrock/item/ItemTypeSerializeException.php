@@ -21,30 +21,8 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\convert;
+namespace pocketmine\data\bedrock\item;
 
-use pocketmine\nbt\tag\CompoundTag;
+final class ItemTypeSerializeException extends \LogicException{
 
-final class R12ToCurrentBlockMapEntry{
-	public function __construct(
-		private string $id,
-		private int $meta,
-		private CompoundTag $blockState
-	){}
-
-	public function getId() : string{
-		return $this->id;
-	}
-
-	public function getMeta() : int{
-		return $this->meta;
-	}
-
-	public function getBlockState() : CompoundTag{
-		return $this->blockState;
-	}
-
-	public function __toString(){
-		return "id=$this->id, meta=$this->meta, nbt=$this->blockState";
-	}
 }

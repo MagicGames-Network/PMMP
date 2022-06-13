@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\lang;
 
 final class Translatable{
-
 	/** @var string[]|Translatable[] $params */
 	protected array $params = [];
 

@@ -30,9 +30,8 @@ use pocketmine\player\Player;
 
 class ExperienceBottle extends ProjectileItem{
 
-	protected function createEntity(Location $location, Player $thrower) {
-		$thrower->getXpManager()->onPickupXp(mt_rand(3, 11));
-		return true;
+	protected function createEntity(Location $location, Player $thrower) : Throwable{
+		return new ExperienceBottleEntity($location, $thrower);
 	}
 
 	public function getThrowForce() : float{

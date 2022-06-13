@@ -29,7 +29,6 @@ use function lcg_value;
 use function min;
 
 abstract class Durable extends Item{
-
 	protected int $damage = 0;
 	private bool $unbreakable = false;
 

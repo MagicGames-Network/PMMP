@@ -56,9 +56,6 @@ class Network{
 	private string $name;
 	private NetworkSessionManager$sessionManager;
 
-	/** @var int */
-	private $delay;
-
 	public function __construct(
 		private \Logger $logger
 	){
@@ -84,14 +81,11 @@ class Network{
 	}
 
 	public function tick() : void{
-		if ($this->delay++ >= 3) {
-			$this->delay = 0;
-			foreach($this->interfaces as $interface){
-				$interface->tick();
-			}
-
-			$this->sessionManager->tick();
+		foreach($this->interfaces as $interface){
+			$interface->tick();
 		}
+
+		$this->sessionManager->tick();
 	}
 
 	/**

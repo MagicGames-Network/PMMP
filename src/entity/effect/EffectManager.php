@@ -33,7 +33,7 @@ use function count;
 use function spl_object_id;
 
 class EffectManager{
-
+	/** @var EffectInstance[] */
 	protected array $effects = [];
 
 	protected Color $bubbleColor;

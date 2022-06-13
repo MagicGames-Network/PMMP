@@ -21,8 +21,9 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock;
+namespace pocketmine\data\bedrock\block\upgrade;
 
+use pocketmine\data\bedrock\LegacyToStringBidirectionalIdMap;
 use pocketmine\utils\SingletonTrait;
 use Webmozart\PathUtil\Path;
 
@@ -30,6 +31,6 @@ final class LegacyBlockIdToStringIdMap extends LegacyToStringBidirectionalIdMap{
 	use SingletonTrait;
 
 	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'block_id_map.json'));
+		parent::__construct(Path::join(\pocketmine\BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH, 'block_legacy_id_map.json'));
 	}
 }

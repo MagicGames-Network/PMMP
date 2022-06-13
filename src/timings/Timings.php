@@ -23,13 +23,13 @@ declare(strict_types=1);
 
 namespace pocketmine\timings;
 
-use function dechex;
-use pocketmine\entity\Entity;
-use pocketmine\player\Player;
 use pocketmine\block\tile\Tile;
-use pocketmine\scheduler\TaskHandler;
+use pocketmine\entity\Entity;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
+use pocketmine\player\Player;
+use pocketmine\scheduler\TaskHandler;
+use function dechex;
 
 abstract class Timings{
 	public const INCLUDED_BY_OTHER_TIMINGS_PREFIX = "** ";
