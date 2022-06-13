@@ -23,20 +23,21 @@ declare(strict_types=1);
 
 namespace pocketmine\entity;
 
-use Ahc\Json\Comment as CommentedJsonDecoder;
-use pocketmine\utils\Limits;
+use function strlen;
 use function implode;
 use function in_array;
 use function json_encode;
-use function json_last_error_msg;
-use function strlen;
+use pocketmine\utils\Limits;
 use const JSON_THROW_ON_ERROR;
+use function json_last_error_msg;
+use Ahc\Json\Comment as CommentedJsonDecoder;
 
 final class Skin{
 	public const ACCEPTED_SKIN_SIZES = [
 		64 * 32 * 4,
 		64 * 64 * 4,
-		128 * 128 * 4
+		128 * 128 * 4,
+		256 * 256 * 4
 	];
 
 	private string $skinId;
