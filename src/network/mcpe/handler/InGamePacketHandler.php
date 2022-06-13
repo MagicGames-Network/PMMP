@@ -174,43 +174,14 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	public function handlePlayerAuthInput(PlayerAuthInputPacket $packet) : bool{
-		$rawPos = $packet->getPosition();
-		foreach([$rawPos->x, $rawPos->y, $rawPos->z, $packet->getYaw(), $packet->getHeadYaw(), $packet->getPitch()] as $float){
-			if(is_infinite($float) || is_nan($float)){
-				$this->session->getLogger()->debug("Invalid movement received, contains NAN/INF components");
-				return false;
-			}
-		}
-
-		$yaw = fmod($packet->getYaw(), 360);
-		$pitch = fmod($packet->getPitch(), 360);
-		if($yaw < 0){
-			$yaw += 360;
-		}
-
-		$this->player->setRotation($yaw, $pitch);
-
-		$curPos = $this->player->getLocation();
-		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
-
-		if($this->forceMoveSync && $newPos->distanceSquared($curPos) > 1){  //Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
-			$this->session->getLogger()->debug("Got outdated pre-teleport movement, received " . $newPos . ", expected " . $curPos);
-			//Still getting movements from before teleport, ignore them
-			return false;
-		}
-
 		// Once we get a movement within a reasonable distance, treat it as a teleport ACK and remove position lock
 		$this->forceMoveSync = false;
 
 		$sneaking = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
 		$sprinting = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
-		$swimming = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SWIMMING, PlayerAuthInputFlags::STOP_SWIMMING);
-		$gliding = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_GLIDING, PlayerAuthInputFlags::STOP_GLIDING);
 		$mismatch =
 			($sneaking !== null && !$this->player->toggleSneak($sneaking)) |
-			($sprinting !== null && !$this->player->toggleSprint($sprinting)) |
-			($swimming !== null && !$this->player->toggleSwim($swimming)) |
-			($gliding !== null && !$this->player->toggleGlide($gliding));
+			($sprinting !== null && !$this->player->toggleSprint($sprinting));
 		if((bool) $mismatch){
 			$this->player->sendData([$this->player]);
 		}
@@ -219,8 +190,18 @@ class InGamePacketHandler extends PacketHandler{
 			$this->player->jump();
 		}
 
-		if(!$this->forceMoveSync){
-			//TODO: this packet has WAYYYYY more useful information that we're not using
+		$rawPos = $packet->getPosition();
+		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
+		if ($this->player->getWorld()->getFolderName() === "MagicGames" || (!$this->forceMoveSync && $this->delay++ >= 20)) {
+			$this->delay = 0;
+
+			$yaw = fmod($packet->getYaw(), 360);
+			$pitch = fmod($packet->getPitch(), 360);
+			if ($yaw < 0) {
+				$yaw += 360;
+			}
+
+			$this->player->setRotation($yaw, $pitch);
 			$this->player->handleMovement($newPos);
 		}
 

@@ -273,6 +273,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 
 	protected ?SurvivalBlockBreakHandler $blockBreakHandler = null;
 
+	private int $playerUpdateTick = 0;
+
 	public function __construct(Server $server, NetworkSession $session, PlayerInfo $playerInfo, bool $authenticated, Location $spawnLocation, ?CompoundTag $namedtag){
 		$username = TextFormat::clean($playerInfo->getUsername());
 		$this->logger = new \PrefixedLogger($server->getLogger(), "Player: $username");
@@ -1308,47 +1310,52 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function onUpdate(int $currentTick) : bool{
 		$tickDiff = $currentTick - $this->lastUpdate;
 
-		if($tickDiff <= 0){
-			return true;
-		}
-
-		$this->messageCounter = 2;
-
-		$this->lastUpdate = $currentTick;
-
-		if(!$this->isAlive() && $this->spawned){
-			$this->onDeathUpdate($tickDiff);
-			return true;
-		}
-
-		$this->timings->startTiming();
-
-		if($this->spawned){
+		if ($this->playerUpdateTick++ % 3 === 0 && $this->spawned) {
 			$this->processMostRecentMovements();
 			$this->motion = new Vector3(0, 0, 0); //TODO: HACK! (Fixes player knockback being messed up)
-			if($this->onGround){
-				$this->inAirTicks = 0;
-			}else{
-				$this->inAirTicks += $tickDiff;
-			}
-
-			Timings::$entityBaseTick->startTiming();
-			$this->entityBaseTick($tickDiff);
-			Timings::$entityBaseTick->stopTiming();
-
-			if(!$this->isSpectator() && $this->isAlive()){
-				Timings::$playerCheckNearEntities->startTiming();
-				$this->checkNearEntities();
-				Timings::$playerCheckNearEntities->stopTiming();
-			}
-
-			if($this->blockBreakHandler !== null && !$this->blockBreakHandler->update()){
-				$this->blockBreakHandler = null;
-			}
 		}
 
-		$this->timings->stopTiming();
+		if ($this->playerUpdateTick >= 10) {
+			$this->playerUpdateTick = 0;
 
+			if ($tickDiff <= 0) {
+				return true;
+			}
+
+			$this->messageCounter = 2;
+
+			$this->lastUpdate = $currentTick;
+
+			if (!$this->isAlive() && $this->spawned) {
+				$this->onDeathUpdate($tickDiff);
+				return true;
+			}
+
+			$this->timings->startTiming();
+
+			if ($this->spawned) {
+				if ($this->onGround) {
+					$this->inAirTicks = 0;
+				} else {
+					$this->inAirTicks += $tickDiff;
+				}
+
+				Timings::$entityBaseTick->startTiming();
+				$this->entityBaseTick($tickDiff);
+				Timings::$entityBaseTick->stopTiming();
+
+				if (!$this->isSpectator() && $this->isAlive()) {
+					Timings::$playerCheckNearEntities->startTiming();
+					$this->checkNearEntities();
+					Timings::$playerCheckNearEntities->stopTiming();
+				}
+
+				if ($this->blockBreakHandler !== null && !$this->blockBreakHandler->update()) {
+					$this->blockBreakHandler = null;
+				}
+			}
+			$this->timings->stopTiming();
+		}
 		return true;
 	}
 
@@ -2205,36 +2212,21 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	}
 
 	protected function onDeath() : void{
-		//Crafting grid must always be evacuated even if keep-inventory is true. This dumps the contents into the
-		//main inventory and drops the rest on the ground.
-		$this->removeCurrentWindow();
+		$world = Server::getInstance()->getWorldManager()->getDefaultWorld();
 
 		$ev = new PlayerDeathEvent($this, $this->getDrops(), $this->getXpDropAmount(), null);
-		$ev->call();
+        $ev->call();
 
-		if(!$ev->getKeepInventory()){
-			foreach($ev->getDrops() as $item){
-				$this->getWorld()->dropItem($this->location, $item);
-			}
-
-			$this->inventory->setHeldItemIndex(0);
-			$this->inventory->clearAll();
-			$this->armorInventory->clearAll();
-			$this->offHandInventory->clearAll();
+		Server::getInstance()->broadcastMessage($ev->getDeathMessage());
+		$this->respawn();
+		$this->networkSession->sendDataPacket(RespawnPacket::create(
+			$this->getOffsetPosition($world->getSpawnLocation()),
+			RespawnPacket::READY_TO_SPAWN,
+			$this->getId()
+		));
+        if (property_exists($this, "stats")) {
+			$this->setHealth($this->stats["MaxHealth"]);
 		}
-
-		if(!$ev->getKeepXp()){
-			$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
-			$this->xpManager->setXpAndProgress(0, 0.0);
-		}
-
-		if($ev->getDeathMessage() != ""){
-			$this->server->broadcastMessage($ev->getDeathMessage());
-		}
-
-		$this->startDeathAnimation();
-
-		$this->getNetworkSession()->onServerDeath();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
@@ -2376,6 +2368,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 * {@inheritdoc}
 	 */
 	public function teleport(Vector3 $pos, ?float $yaw = null, ?float $pitch = null) : bool{
+		$this->setImmobile();
 		if(parent::teleport($pos, $yaw, $pitch)){
 
 			$this->removeCurrentWindow();
@@ -2396,10 +2389,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			//TODO: workaround for player last pos not getting updated
 			//Entity::updateMovement() normally handles this, but it's overridden with an empty function in Player
 			$this->resetLastMovements();
-
+			$this->setImmobile(false);
 			return true;
 		}
-
+		$this->setImmobile(false);
 		return false;
 	}
 

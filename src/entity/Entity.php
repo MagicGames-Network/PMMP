@@ -610,7 +610,7 @@ abstract class Entity{
 		$this->checkBlockIntersections();
 
 		if($this->location->y <= World::Y_MIN - 16 && $this->isAlive()){
-			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, 10);
+			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_VOID, PHP_INT_MAX);
 			$this->attack($ev);
 			$hasUpdate = true;
 		}
@@ -959,9 +959,6 @@ abstract class Entity{
 	}
 
 	final public function scheduleUpdate() : void{
-		if($this->closed){
-			throw new \LogicException("Cannot schedule update on garbage entity " . get_class($this));
-		}
 		$this->getWorld()->updateEntities[$this->id] = $this;
 	}
 
@@ -1239,7 +1236,7 @@ abstract class Entity{
 	 * Returns whether this entity can be moved by currents in liquids.
 	 */
 	public function canBeMovedByCurrents() : bool{
-		return true;
+		return false;
 	}
 
 	protected function checkBlockIntersections() : void{

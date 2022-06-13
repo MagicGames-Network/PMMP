@@ -101,6 +101,8 @@ abstract class Living extends Entity{
 	protected bool $gliding = false;
 	protected bool $swimming = false;
 
+	private int $livingBaseEntityTick = 0;
+
 	protected function getInitialDragMultiplier() : float{ return 0.02; }
 
 	protected function getInitialGravity() : float{ return 0.08; }
@@ -510,14 +512,18 @@ abstract class Living extends Entity{
 			$e = $source->getChild();
 			if($e !== null){
 				$motion = $e->getMotion();
-				$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
+				if ($this instanceof Human) {
+					$this->knockBack($motion->x, $motion->z, $source->getKnockBack());
+				}
 			}
 		}elseif($source instanceof EntityDamageByEntityEvent){
 			$e = $source->getDamager();
 			if($e !== null){
 				$deltaX = $this->location->x - $e->location->x;
 				$deltaZ = $this->location->z - $e->location->z;
-				$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
+				if ($this instanceof Human) {
+					$this->knockBack($deltaX, $deltaZ, $source->getKnockBack());
+				}
 			}
 		}
 
@@ -566,17 +572,12 @@ abstract class Living extends Entity{
 		$this->getWorld()->dropExperience($this->location, $ev->getXpDropAmount());
 
 		$this->startDeathAnimation();
+		$this->endDeathAnimation();
 	}
 
 	protected function onDeathUpdate(int $tickDiff) : bool{
-		if($this->deadTicks < $this->maxDeadTicks){
-			$this->deadTicks += $tickDiff;
-			if($this->deadTicks >= $this->maxDeadTicks){
-				$this->endDeathAnimation();
-			}
-		}
-
-		return $this->deadTicks >= $this->maxDeadTicks;
+		$this->endDeathAnimation();
+		return false;
 	}
 
 	protected function startDeathAnimation() : void{
@@ -585,6 +586,7 @@ abstract class Living extends Entity{
 
 	protected function endDeathAnimation() : void{
 		$this->despawnFromAll();
+		$this->close();
 	}
 
 	protected function entityBaseTick(int $tickDiff = 1) : bool{
@@ -592,19 +594,23 @@ abstract class Living extends Entity{
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		if($this->isAlive()){
-			if($this->effectManager->tick($tickDiff)){
-				$hasUpdate = true;
-			}
-
-			if($this->isInsideOfSolid()){
-				$hasUpdate = true;
-				$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
-				$this->attack($ev);
-			}
-
-			if($this->doAirSupplyTick($tickDiff)){
-				$hasUpdate = true;
+		$tickDiff = $tickDiff + 10;
+		if ($this->livingBaseEntityTick++ >= 10) {
+			$this->livingBaseEntityTick = 0;
+			if($this->isAlive()){
+				if($this->effectManager->tick($tickDiff)){
+					$hasUpdate = true;
+				}
+	
+				if($this->isInsideOfSolid()){
+					$hasUpdate = true;
+					$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 1);
+					$this->attack($ev);
+				}
+	
+				if($this->doAirSupplyTick($tickDiff)){
+					$hasUpdate = true;
+				}
 			}
 		}
 

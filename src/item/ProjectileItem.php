@@ -34,7 +34,7 @@ abstract class ProjectileItem extends Item{
 
 	abstract public function getThrowForce() : float;
 
-	abstract protected function createEntity(Location $location, Player $thrower) : Throwable;
+	abstract protected function createEntity(Location $location, Player $thrower);
 
 	public function onClickAir(Player $player, Vector3 $directionVector) : ItemUseResult{
 		$location = $player->getLocation();

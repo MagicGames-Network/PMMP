@@ -52,7 +52,7 @@ class ItemEntity extends Entity{
 
 	protected string $owner = "";
 	protected string $thrower = "";
-	protected int $pickupDelay = 0;
+	protected int $pickupDelay = 30;
 	protected int $despawnDelay = self::DEFAULT_DESPAWN_DELAY;
 	protected Item $item;
 
@@ -204,6 +204,11 @@ class ItemEntity extends Entity{
 		return false;
 	}
 
+	public function canBeMovedByCurrents(): bool
+	{
+		return true;
+	}
+
 	public function canBeCollidedWith() : bool{
 		return false;
 	}
@@ -213,7 +218,7 @@ class ItemEntity extends Entity{
 	}
 
 	public function setPickupDelay(int $delay) : void{
-		$this->pickupDelay = $delay;
+		$this->pickupDelay = 30;
 	}
 
 	/**

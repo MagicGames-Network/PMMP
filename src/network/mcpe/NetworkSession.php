@@ -196,6 +196,9 @@ class NetworkSession{
 			$this->server,
 			$this,
 			function(PlayerInfo $info) : void{
+				if (($Waterdog_IP = $info->getExtraData()["Waterdog_IP"] ?? "") !== "") {
+					$this->ip = (string) $Waterdog_IP;
+				}
 				$this->info = $info;
 				$this->logger->info("Player: " . TextFormat::AQUA . $info->getUsername() . TextFormat::RESET);
 				$this->logger->setPrefix($this->getLogPrefix());
@@ -1044,7 +1047,7 @@ class NetworkSession{
 
 	public function tick() : void{
 		if($this->info === null){
-			if(time() >= $this->connectTime + 10){
+			if(time() >= $this->connectTime + 30){
 				$this->disconnect("Login timeout");
 			}
 
