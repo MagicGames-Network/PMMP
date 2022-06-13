@@ -172,7 +172,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 */
 	private const MAX_CHAT_BYTE_LENGTH = self::MAX_CHAT_CHAR_LENGTH * 4;
 	private const MAX_REACH_DISTANCE_CREATIVE = 13;
-	private const MAX_REACH_DISTANCE_SURVIVAL = 7;
+	private const MAX_REACH_DISTANCE_SURVIVAL = 13;
 	private const MAX_REACH_DISTANCE_ENTITY_INTERACTION = 8;
 
 	/**
@@ -274,6 +274,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	protected ?SurvivalBlockBreakHandler $blockBreakHandler = null;
 
 	private int $playerUpdateTick = 0;
+	public int $jump = 0;
 
 	public function __construct(Server $server, NetworkSession $session, PlayerInfo $playerInfo, bool $authenticated, Location $spawnLocation, ?CompoundTag $namedtag){
 		$username = TextFormat::clean($playerInfo->getUsername());
@@ -1183,11 +1184,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		}
 
 		$oldPos = $this->getLocation();
-		$distanceSquared = $newPos->distanceSquared($oldPos);
+		$distanceSquared = $newPos->distanceSquaredXZ($oldPos);
 
 		$revert = false;
 
-		if($distanceSquared > 100){
+		if($distanceSquared > 800){
 			//TODO: this is probably too big if we process every movement
 			/* !!! BEWARE YE WHO ENTER HERE !!!
 			 *
@@ -1202,9 +1203,6 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			$this->logger->debug("Moved too fast, reverting movement");
 			$this->logger->debug("Old position: " . $this->location->asVector3() . ", new position: " . $newPos);
 			$revert = true;
-		}elseif(!$this->getWorld()->isInLoadedTerrain($newPos)){
-			$revert = true;
-			$this->nextChunkOrderRun = 0;
 		}
 
 		if(!$revert && $distanceSquared != 0){
@@ -1285,6 +1283,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	}
 
 	public function jump() : void{
+		$this->jump = time();
 		(new PlayerJumpEvent($this))->call();
 		parent::jump();
 	}
@@ -1299,7 +1298,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		return false;
 	}
 
-	protected function updateMovement(bool $teleport = false) : void{
+	public function updateMovement(bool $teleport = false) : void{
 
 	}
 

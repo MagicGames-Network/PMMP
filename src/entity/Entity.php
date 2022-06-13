@@ -26,54 +26,54 @@ declare(strict_types=1);
  */
 namespace pocketmine\entity;
 
-use pocketmine\block\Block;
-use pocketmine\block\Water;
-use pocketmine\entity\animation\Animation;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDespawnEvent;
-use pocketmine\event\entity\EntityMotionEvent;
-use pocketmine\event\entity\EntityRegainHealthEvent;
-use pocketmine\event\entity\EntitySpawnEvent;
-use pocketmine\event\entity\EntityTeleportEvent;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector2;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\ListTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\mcpe\protocol\AddActorPacket;
-use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
-use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
-use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
-use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
-use pocketmine\player\Player;
-use pocketmine\Server;
-use pocketmine\timings\Timings;
-use pocketmine\timings\TimingsHandler;
-use pocketmine\utils\Utils;
-use pocketmine\world\format\Chunk;
-use pocketmine\world\Position;
-use pocketmine\world\sound\Sound;
-use pocketmine\world\World;
+use const M_PI_2;
 use function abs;
-use function array_map;
-use function assert;
 use function cos;
-use function count;
-use function deg2rad;
-use function floor;
+use function sin;
 use function fmod;
+use function count;
+use function floor;
+use function assert;
+use function deg2rad;
+use pocketmine\Server;
+use function array_map;
 use function get_class;
 use function lcg_value;
-use function sin;
 use function spl_object_id;
-use const M_PI_2;
+use pocketmine\block\Block;
+use pocketmine\block\Water;
+use pocketmine\math\Facing;
+use pocketmine\utils\Utils;
+use pocketmine\world\World;
+use pocketmine\math\Vector2;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
+use pocketmine\world\Position;
+use pocketmine\nbt\tag\ListTag;
+use pocketmine\timings\Timings;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\world\sound\Sound;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\world\format\Chunk;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\timings\TimingsHandler;
+use pocketmine\entity\animation\Animation;
+use pocketmine\event\entity\EntitySpawnEvent;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityMotionEvent;
+use pocketmine\event\entity\EntityDespawnEvent;
+use pocketmine\event\entity\EntityTeleportEvent;
+use pocketmine\event\entity\EntityRegainHealthEvent;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
+use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
 
 abstract class Entity{
 
@@ -703,7 +703,7 @@ abstract class Entity{
 		return $this->isAlive();
 	}
 
-	protected function updateMovement(bool $teleport = false) : void{
+	public function updateMovement(bool $teleport = false) : void{
 		$diffPosition = $this->location->distanceSquared($this->lastLocation);
 		$diffRotation = ($this->location->yaw - $this->lastLocation->yaw) ** 2 + ($this->location->pitch - $this->lastLocation->pitch) ** 2;
 
