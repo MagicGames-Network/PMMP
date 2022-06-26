@@ -123,6 +123,7 @@ use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\world\generator\GeneratorUnregisterTask;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\world\format\io\GlobalBlockStateHandlers;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
 use pocketmine\world\format\io\exception\CorruptedChunkException;
@@ -440,7 +441,12 @@ class World implements ChunkManager{
 			if($item !== null){
 				$block = $item->getBlock();
 			}elseif(preg_match("/^-?\d+$/", $name) === 1){
-				$block = BlockFactory::getInstance()->get((int) $name, 0);
+				//TODO: this may throw if the ID/meta was invalid
+				$blockStateData = GlobalBlockStateHandlers::getUpgrader()->upgradeIntIdMeta((int) $name, 0);
+				if($blockStateData === null){
+					continue;
+				}
+				$block = BlockFactory::getInstance()->fromFullBlock(GlobalBlockStateHandlers::getDeserializer()->deserialize($blockStateData));
 			}else{
 				//TODO: we probably ought to log an error here
 				continue;
@@ -454,7 +460,7 @@ class World implements ChunkManager{
 		foreach(BlockFactory::getInstance()->getAllKnownStates() as $state){
 			$dontTickName = $dontTickBlocks[$state->getTypeId()] ?? null;
 			if($dontTickName === null && $state->ticksRandomly()){
-				$this->randomTickBlocks[$state->getFullId()] = true;
+				$this->randomTickBlocks[$state->getStateId()] = true;
 			}
 		}
 	}
@@ -964,7 +970,7 @@ class World implements ChunkManager{
 			$blockPosition = BlockPosition::fromVector3($b);
 			$packets[] = UpdateBlockPacket::create(
 				$blockPosition,
-				$blockMapping->toRuntimeId($fullBlock->getFullId()),
+				$blockMapping->toRuntimeId($fullBlock->getStateId()),
 				UpdateBlockPacket::FLAG_NETWORK,
 				UpdateBlockPacket::DATA_LAYER_NORMAL
 			);
@@ -1004,11 +1010,11 @@ class World implements ChunkManager{
 		if($block instanceof UnknownBlock){
 			throw new \InvalidArgumentException("Cannot do random-tick on unknown block");
 		}
-		$this->randomTickBlocks[$block->getFullId()] = true;
+		$this->randomTickBlocks[$block->getStateId()] = true;
 	}
 
 	public function removeRandomTickedBlock(Block $block) : void{
-		unset($this->randomTickBlocks[$block->getFullId()]);
+		unset($this->randomTickBlocks[$block->getStateId()]);
 	}
 
 	private function tickChunks() : void{
@@ -2480,26 +2486,6 @@ class World implements ChunkManager{
 
 	private function initChunk(int $chunkX, int $chunkZ, ChunkData $chunkData) : void{
 		$logger = new \PrefixedLogger($this->logger, "Loading chunk $chunkX $chunkZ");
-
-		$this->timings->syncChunkLoadFixInvalidBlocks->startTiming();
-		$blockFactory = BlockFactory::getInstance();
-		$invalidBlocks = 0;
-		foreach($chunkData->getChunk()->getSubChunks() as $subChunk){
-			foreach($subChunk->getBlockLayers() as $blockLayer){
-				foreach($blockLayer->getPalette() as $blockStateId){
-					$mappedStateId = $blockFactory->getMappedStateId($blockStateId);
-					if($mappedStateId !== $blockStateId){
-						$blockLayer->replaceAll($blockStateId, $mappedStateId);
-						$invalidBlocks++;
-					}
-				}
-			}
-		}
-		if($invalidBlocks > 0){
-			$logger->debug("Fixed $invalidBlocks invalid blockstates");
-			$chunkData->getChunk()->setTerrainDirtyFlag(Chunk::DIRTY_FLAG_BLOCKS, true);
-		}
-		$this->timings->syncChunkLoadFixInvalidBlocks->stopTiming();
 
 		if(count($chunkData->getEntityNBT()) !== 0){
 			$this->timings->syncChunkLoadEntities->startTiming();
