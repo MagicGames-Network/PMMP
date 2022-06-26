@@ -23,17 +23,17 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\tile\Skull as TileSkull;
-use pocketmine\block\utils\BlockDataSerializer;
-use pocketmine\block\utils\SkullType;
+use function floor;
+use function assert;
 use pocketmine\item\Item;
-use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\block\utils\SkullType;
 use pocketmine\world\BlockTransaction;
-use function assert;
-use function floor;
+use pocketmine\block\tile\Skull as TileSkull;
+use pocketmine\block\utils\BlockDataSerializer;
 
 class Skull extends Flowable{
 	public const MIN_ROTATION = 0;
@@ -56,7 +56,7 @@ class Skull extends Flowable{
 	}
 
 	public function readStateFromData(int $id, int $stateMeta) : void{
-		$this->facing = $stateMeta === 1 ? Facing::UP : BlockDataSerializer::readHorizontalFacing($stateMeta);
+		$this->facing = ($stateMeta & 0x07) === 1 ? Facing::UP : BlockDataSerializer::readHorizontalFacing($stateMeta);
 		$this->noDrops = ($stateMeta & BlockLegacyMetadata::SKULL_FLAG_NO_DROPS) !== 0;
 	}
 
