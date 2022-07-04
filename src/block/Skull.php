@@ -35,6 +35,8 @@ use pocketmine\world\BlockTransaction;
 use pocketmine\block\utils\BlockDataReader;
 use pocketmine\block\utils\BlockDataWriter;
 use pocketmine\block\tile\Skull as TileSkull;
+use pocketmine\block\utils\BlockDataReaderHelper;
+use pocketmine\block\utils\BlockDataWriterHelper;
 use pocketmine\block\utils\InvalidBlockStateException;
 
 class Skull extends Flowable{
@@ -49,6 +51,16 @@ class Skull extends Flowable{
 	public function __construct(BlockIdentifier $idInfo, string $name, BlockBreakInfo $breakInfo){
 		$this->skullType = SkullType::SKELETON(); //TODO: this should be a parameter
 		parent::__construct($idInfo, $name, $breakInfo);
+	}
+
+	public function getRequiredTypeDataBits() : int{ return 3; }
+
+	protected function decodeType(BlockDataReader $r) : void{
+		$this->skullType = BlockDataReaderHelper::readSkullType($r);
+	}
+
+	protected function encodeType(BlockDataWriter $w) : void{
+		BlockDataWriterHelper::writeSkullType($w, $this->skullType);
 	}
 
 	public function getRequiredStateDataBits() : int{ return 3; }
