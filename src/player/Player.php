@@ -127,6 +127,7 @@ use pocketmine\event\player\PlayerToggleGlideEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\RespawnPacket;
 use pocketmine\permission\PermissibleDelegateTrait;
 use pocketmine\event\player\PlayerToggleFlightEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
