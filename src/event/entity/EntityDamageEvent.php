@@ -23,11 +23,11 @@ declare(strict_types=1);
 
 namespace pocketmine\event\entity;
 
+use function max;
+use function array_sum;
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
-use function array_sum;
-use function max;
 
 /**
  * Called when an entity takes damage.
@@ -81,7 +81,7 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 		private array $modifiers = []
 	){
 		$this->entity = $entity;
-		$this->baseDamage = $this->originalBase = $damage - 2;
+		$this->baseDamage = $this->originalBase = $damage;
 		$this->originals = $modifiers;
 	}
 

@@ -144,8 +144,6 @@ class InGamePacketHandler extends PacketHandler{
 
 	public bool $forceMoveSync = false;
 
-	private int $delay = 0;
-
 	public function __construct(
 		private Player $player,
 		private NetworkSession $session,
@@ -163,49 +161,33 @@ class InGamePacketHandler extends PacketHandler{
 	public function handleMovePlayer(MovePlayerPacket $packet) : bool{
 		//The client sends this every time it lands on the ground, even when using PlayerAuthInputPacket.
 		//Silence the debug spam that this causes.
-		return true;
-	}
+		$rawPos = $packet->position;
+		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
 
-	private function resolveOnOffInputFlags(PlayerAuthInputPacket $packet, int $startFlag, int $stopFlag) : ?bool{
-		$enabled = $packet->hasFlag($startFlag);
-		if($enabled !== $packet->hasFlag($stopFlag)){
-			return $enabled;
+		$yaw = fmod($packet->yaw, 360);
+		$pitch = fmod($packet->pitch, 360);
+		if ($yaw < 0) {
+			$yaw += 360;
 		}
-		//neither flag was set, or both were set
-		return null;
+
+		$this->player->setRotation($yaw, $pitch);
+
+		$curPos = $this->player->getLocation();
+		$newPos = $packet->position->round(4)->subtract(0, 1.62, 0);
+		if($this->forceMoveSync && $newPos->distanceSquared($curPos) > 1){  //Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
+			$this->session->getLogger()->debug("Got outdated pre-teleport movement, received " . $newPos . ", expected " . $curPos);
+			//Still getting movements from before teleport, ignore them
+			return false;
+		}
+		$this->forceMoveSync = false;
+		
+		$this->player->handleMovement($newPos);
+		return true;
 	}
 
 	public function handlePlayerAuthInput(PlayerAuthInputPacket $packet) : bool{
 		// Once we get a movement within a reasonable distance, treat it as a teleport ACK and remove position lock
 		$this->forceMoveSync = false;
-
-		$sneaking = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SNEAKING, PlayerAuthInputFlags::STOP_SNEAKING);
-		$sprinting = $this->resolveOnOffInputFlags($packet, PlayerAuthInputFlags::START_SPRINTING, PlayerAuthInputFlags::STOP_SPRINTING);
-		$mismatch =
-			($sneaking !== null && !$this->player->toggleSneak($sneaking)) |
-			($sprinting !== null && !$this->player->toggleSprint($sprinting));
-		if((bool) $mismatch){
-			$this->player->sendData([$this->player]);
-		}
-
-		if($packet->hasFlag(PlayerAuthInputFlags::START_JUMPING)){
-			$this->player->jump();
-		}
-
-		$rawPos = $packet->getPosition();
-		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
-		if ($this->player->getWorld()->getFolderName() === "MagicGames" || (!$this->forceMoveSync && $this->delay++ >= 20)) {
-			$this->delay = 0;
-
-			$yaw = fmod($packet->getYaw(), 360);
-			$pitch = fmod($packet->getPitch(), 360);
-			if ($yaw < 0) {
-				$yaw += 360;
-			}
-
-			$this->player->setRotation($yaw, $pitch);
-			$this->player->handleMovement($newPos);
-		}
 
 		$packetHandled = true;
 
@@ -557,6 +539,9 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	public function handlePlayerAction(PlayerActionPacket $packet) : bool{
+		if(!$this->player->spawned || (!$this->player->isAlive() && $packet->action !== PlayerAction::RESPAWN)){
+			return false;
+		}
 		return $this->handlePlayerActionFromData($packet->action, $packet->blockPosition, $packet->face);
 	}
 
@@ -569,9 +554,7 @@ class InGamePacketHandler extends PacketHandler{
 				if(!$this->player->attackBlock($pos, $face)){
 					$this->onFailedBlockAction($pos, $face);
 				}
-
 				break;
-
 			case PlayerAction::ABORT_BREAK:
 			case PlayerAction::STOP_BREAK:
 				$this->player->stopBreakBlock($pos);
@@ -582,6 +565,49 @@ class InGamePacketHandler extends PacketHandler{
 			case PlayerAction::STOP_SLEEPING:
 				$this->player->stopSleep();
 				break;
+			case PlayerAction::JUMP:
+				$this->player->jump();
+				break;
+			case PlayerAction::START_SPRINT:
+				if(!$this->player->toggleSprint(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SPRINT:
+				if(!$this->player->toggleSprint(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_SNEAK:
+				if(!$this->player->toggleSneak(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SNEAK:
+				if(!$this->player->toggleSneak(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_GLIDE:
+				if(!$this->player->toggleGlide(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_GLIDE:
+				if(!$this->player->toggleGlide(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_SWIMMING:
+				if(!$this->player->toggleSwim(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SWIMMING:
+				if(!$this->player->toggleSwim(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
 			case PlayerAction::CRACK_BREAK:
 				self::validateFacing($face);
 				$this->player->continueBreakBlock($pos, $face);

@@ -23,27 +23,28 @@ declare(strict_types=1);
 
 namespace pocketmine\data\bedrock\block\convert;
 
-use pocketmine\block\Bamboo;
+use function min;
+use pocketmine\math\Axis;
 use pocketmine\block\Block;
-use pocketmine\block\BlockLegacyMetadata;
+use pocketmine\math\Facing;
+use pocketmine\block\Bamboo;
+use function array_key_exists;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\block\SweetBerryBush;
-use pocketmine\block\utils\BrewingStandSlot;
+use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\CoralType;
 use pocketmine\block\utils\LeverFacing;
-use pocketmine\block\utils\SlabType;
+use pocketmine\block\BlockLegacyMetadata;
+use pocketmine\block\utils\BrewingStandSlot;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\data\bedrock\block\BlockStateData;
-use pocketmine\data\bedrock\block\BlockStateDeserializeException;
+use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
 use pocketmine\data\bedrock\block\BlockStateDeserializer;
 use pocketmine\data\bedrock\block\BlockStateNames as StateNames;
-use pocketmine\data\bedrock\block\BlockStateStringValues as StringValues;
-use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
-use pocketmine\data\bedrock\block\convert\BlockStateDeserializerHelper as Helper;
+use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\convert\BlockStateReader as Reader;
-use pocketmine\math\Axis;
-use pocketmine\math\Facing;
-use function array_key_exists;
-use function min;
+use pocketmine\data\bedrock\block\BlockStateStringValues as StringValues;
+use pocketmine\data\bedrock\block\convert\BlockStateDeserializerHelper as Helper;
 
 final class BlockStateToBlockObjectDeserializer implements BlockStateDeserializer{
 
@@ -2533,7 +2534,7 @@ final class BlockStateToBlockObjectDeserializer implements BlockStateDeserialize
 	public function deserializeBlock(BlockStateData $blockStateData) : Block{
 		$id = $blockStateData->getName();
 		if(!array_key_exists($id, $this->deserializeFuncs)){
-			throw new UnsupportedBlockStateException("Unknown block ID \"$id\"");
+			return VanillaBlocks::AIR();
 		}
 		$reader = new Reader($blockStateData);
 		$block = $this->deserializeFuncs[$id]($reader);

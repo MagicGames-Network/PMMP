@@ -23,29 +23,29 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
+use function sprintf;
+use Ramsey\Uuid\Uuid;
+use pocketmine\Server;
+use pocketmine\VersionInfo;
+use pocketmine\player\Player;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\InventoryManager;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\cache\CraftingDataCache;
 use pocketmine\network\mcpe\cache\StaticPacketCache;
-use pocketmine\network\mcpe\convert\GlobalItemTypeDictionary;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\InventoryManager;
-use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\network\mcpe\protocol\types\Experiments;
 use pocketmine\network\mcpe\protocol\types\BoolGameRule;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
-use pocketmine\network\mcpe\protocol\types\Experiments;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\LevelSettings;
-use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
-use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\network\mcpe\protocol\types\SpawnSettings;
-use pocketmine\player\Player;
-use pocketmine\Server;
-use pocketmine\VersionInfo;
-use Ramsey\Uuid\Uuid;
-use function sprintf;
+use pocketmine\network\mcpe\convert\GlobalItemTypeDictionary;
+use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
+use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
+use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 
 /**
  * Handler used for the pre-spawn phase of the session.
@@ -91,7 +91,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$this->server->getMotd(),
 			"",
 			false,
-			new PlayerMovementSettings(PlayerMovementType::SERVER_AUTHORITATIVE_V1, 0, false),
+			new PlayerMovementSettings(PlayerMovementType::LEGACY, 0, false),
 			0,
 			0,
 			"",

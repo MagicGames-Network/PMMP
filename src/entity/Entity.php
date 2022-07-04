@@ -115,7 +115,7 @@ abstract class Entity{
 	private float $health = 20.0;
 	private int $maxHealth = 20;
 
-	protected float $ySize = 0.0;
+	public float $ySize = 0.0;
 	protected float $stepHeight = 0.0;
 	public bool $keepMovement = false;
 
@@ -1491,8 +1491,7 @@ abstract class Entity{
 	 * Flags the entity to be removed from the world on the next tick.
 	 */
 	public function flagForDespawn() : void{
-		$this->needsDespawn = true;
-		$this->scheduleUpdate();
+		$this->close();
 	}
 
 	public function isFlaggedForDespawn() : bool{

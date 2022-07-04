@@ -23,22 +23,22 @@ declare(strict_types=1);
 
 namespace pocketmine\entity\object;
 
-use pocketmine\block\VanillaBlocks;
+use function ceil;
+use pocketmine\math\Facing;
+use pocketmine\world\World;
+use pocketmine\math\Vector3;
 use pocketmine\entity\Entity;
-use pocketmine\entity\EntitySizeInfo;
+use pocketmine\player\Player;
 use pocketmine\entity\Location;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
-use pocketmine\math\Vector3;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\entity\EntitySizeInfo;
+use pocketmine\world\particle\BlockBreakParticle;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\network\mcpe\protocol\AddPaintingPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
-use pocketmine\player\Player;
-use pocketmine\world\particle\BlockBreakParticle;
-use pocketmine\world\World;
-use function ceil;
 
 class Painting extends Entity{
 	public static function getNetworkTypeId() : string{ return EntityIds::PAINTING; }
@@ -136,7 +136,7 @@ class Painting extends Entity{
 		return false;
 	}
 
-	protected function updateMovement(bool $teleport = false) : void{
+	public function updateMovement(bool $teleport = false) : void{
 
 	}
 
