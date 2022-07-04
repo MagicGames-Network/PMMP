@@ -33,12 +33,12 @@ use pocketmine\item\VanillaItems;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\block\utils\SkullType;
 use pocketmine\world\BlockTransaction;
-use pocketmine\block\utils\BlockDataReader;
-use pocketmine\block\utils\BlockDataWriter;
 use pocketmine\block\tile\Skull as TileSkull;
-use pocketmine\block\utils\BlockDataReaderHelper;
-use pocketmine\block\utils\BlockDataWriterHelper;
+use pocketmine\data\runtime\block\BlockDataReader;
+use pocketmine\data\runtime\block\BlockDataWriter;
 use pocketmine\block\utils\InvalidBlockStateException;
+use pocketmine\data\runtime\block\BlockDataReaderHelper;
+use pocketmine\data\runtime\block\BlockDataWriterHelper;
 
 class Skull extends Flowable{
 	public const MIN_ROTATION = 0;
