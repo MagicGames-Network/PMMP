@@ -1992,6 +1992,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		$this->getNetworkSession()->onTip($message);
 	}
 
+	public function sendToast(string $title, string $body) : void{
+		$this->getNetworkSession()->onToast($title, $body);
+	}
+
 	/**
 	 * Sends a Form to the player, or queue to send it if a form is already open.
 	 *

@@ -50,6 +50,7 @@ use pocketmine\player\Player;
 use const JSON_THROW_ON_ERROR;
 use pocketmine\world\Position;
 use pocketmine\player\GameMode;
+use pocketmine\network\mcpe\protocol\ToastRequestPacket;
 use pocketmine\timings\Timings;
 use pocketmine\utils\ObjectSet;
 use pocketmine\entity\Attribute;
@@ -1043,6 +1044,10 @@ class NetworkSession{
 
 	public function onEmote(Human $from, string $emoteId) : void{
 		$this->sendDataPacket(EmotePacket::create($from->getId(), $emoteId, EmotePacket::FLAG_SERVER));
+	}
+
+	public function onToast(string $title, string $body) : void{
+		$this->sendDataPacket(ToastRequestPacket::create($title, $body));
 	}
 
 	public function tick() : void{
