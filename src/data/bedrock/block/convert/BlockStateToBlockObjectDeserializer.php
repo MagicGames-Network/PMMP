@@ -29,15 +29,14 @@ use pocketmine\block\Block;
 use pocketmine\math\Facing;
 use pocketmine\block\Bamboo;
 use function array_key_exists;
-use pocketmine\block\VanillaBlocks;
 use pocketmine\block\SweetBerryBush;
 use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\CoralType;
 use pocketmine\block\utils\LeverFacing;
-use pocketmine\block\BlockLegacyMetadata;
 use pocketmine\block\utils\BrewingStandSlot;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\data\bedrock\block\BlockStateData;
+use pocketmine\data\bedrock\block\BlockLegacyMetadata;
 use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
 use pocketmine\data\bedrock\block\BlockStateDeserializer;
 use pocketmine\data\bedrock\block\BlockStateNames as StateNames;
@@ -2534,7 +2533,7 @@ final class BlockStateToBlockObjectDeserializer implements BlockStateDeserialize
 	public function deserializeBlock(BlockStateData $blockStateData) : Block{
 		$id = $blockStateData->getName();
 		if(!array_key_exists($id, $this->deserializeFuncs)){
-			return VanillaBlocks::AIR();
+			throw new UnsupportedBlockStateException("Unknown block ID \"$id\"");
 		}
 		$reader = new Reader($blockStateData);
 		$block = $this->deserializeFuncs[$id]($reader);
