@@ -24,14 +24,15 @@ declare(strict_types=1);
 namespace pocketmine\item;
 
 use pocketmine\block\Block;
-use pocketmine\block\utils\DyeColor;
-use pocketmine\block\utils\SlabType;
-use pocketmine\utils\SingletonTrait;
+use pocketmine\block\Light;
 use pocketmine\block\utils\CoralType;
+use pocketmine\block\utils\DyeColor;
 use pocketmine\block\utils\SkullType;
-use pocketmine\utils\StringToTParser;
-use pocketmine\item\VanillaItems as Items;
+use pocketmine\block\utils\SlabType;
 use pocketmine\block\VanillaBlocks as Blocks;
+use pocketmine\item\VanillaItems as Items;
+use pocketmine\utils\SingletonTrait;
+use pocketmine\utils\StringToTParser;
 
 /**
  * Handles parsing items from strings. This is used to interpret names from the /give command (and others).
@@ -69,6 +70,11 @@ final class StringToItemParser extends StringToTParser{
 			$result->registerBlock($prefix("coral_block"), fn() => Blocks::CORAL_BLOCK()->setCoralType($coralType));
 			//wall and floor coral fans are the same item
 			$result->registerBlock($prefix("coral_fan"), fn() => Blocks::CORAL_FAN()->setCoralType($coralType));
+		}
+		for($i = Light::MIN_LIGHT_LEVEL; $i < Light::MAX_LIGHT_LEVEL; $i++){
+			//helper aliases, since we don't support passing data values in /give
+			$result->registerBlock("light_$i", fn() => Blocks::LIGHT()->setLightLevel($i));
+			$result->registerBlock("light_block_$i", fn() => Blocks::LIGHT()->setLightLevel($i));
 		}
 
 		$result->registerBlock("acacia_button", fn() => Blocks::ACACIA_BUTTON());
@@ -640,6 +646,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("lectern", fn() => Blocks::LECTERN());
 		$result->registerBlock("legacy_stonecutter", fn() => Blocks::LEGACY_STONECUTTER());
 		$result->registerBlock("lever", fn() => Blocks::LEVER());
+		$result->registerBlock("light", fn() => Blocks::LIGHT());
+		$result->registerBlock("light_block", fn() => Blocks::LIGHT());
 		$result->registerBlock("light_weighted_pressure_plate", fn() => Blocks::WEIGHTED_PRESSURE_PLATE_LIGHT());
 		$result->registerBlock("lilac", fn() => Blocks::LILAC());
 		$result->registerBlock("lily_of_the_valley", fn() => Blocks::LILY_OF_THE_VALLEY());

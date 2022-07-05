@@ -23,30 +23,31 @@ declare(strict_types=1);
 
 namespace pocketmine\data\bedrock\block\convert;
 
-use function min;
-use pocketmine\math\Axis;
-use pocketmine\block\Slab;
-use pocketmine\block\Block;
-use pocketmine\block\Stair;
-use pocketmine\math\Facing;
 use pocketmine\block\Bamboo;
-use function array_key_exists;
+use pocketmine\block\Block;
+use pocketmine\block\Light;
+use pocketmine\block\Slab;
+use pocketmine\block\Stair;
 use pocketmine\block\SweetBerryBush;
-use pocketmine\block\utils\DyeColor;
-use pocketmine\block\utils\SlabType;
-use pocketmine\block\utils\CoralType;
-use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\BrewingStandSlot;
+use pocketmine\block\utils\CoralType;
+use pocketmine\block\utils\DyeColor;
+use pocketmine\block\utils\LeverFacing;
+use pocketmine\block\utils\SlabType;
 use pocketmine\block\VanillaBlocks as Blocks;
-use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
-use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
+use pocketmine\data\bedrock\block\BlockStateData;
+use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\BlockStateDeserializer;
 use pocketmine\data\bedrock\block\BlockStateNames as StateNames;
-use pocketmine\data\bedrock\block\BlockStateDeserializeException;
-use pocketmine\data\bedrock\block\convert\BlockStateReader as Reader;
 use pocketmine\data\bedrock\block\BlockStateStringValues as StringValues;
+use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
 use pocketmine\data\bedrock\block\convert\BlockStateDeserializerHelper as Helper;
+use pocketmine\data\bedrock\block\convert\BlockStateReader as Reader;
+use pocketmine\math\Axis;
+use pocketmine\math\Facing;
+use function array_key_exists;
+use function min;
 
 final class BlockStateToBlockObjectDeserializer implements BlockStateDeserializer{
 
@@ -639,6 +640,10 @@ final class BlockStateToBlockObjectDeserializer implements BlockStateDeserialize
 					StringValues::LEVER_DIRECTION_EAST => LeverFacing::EAST(),
 					default => throw $in->badValueException(StateNames::LEVER_DIRECTION, $value),
 				});
+		});
+		$this->map(Ids::LIGHT_BLOCK, function(Reader $in) : Block{
+			return Blocks::LIGHT()
+				->setLightLevel($in->readBoundedInt(StateNames::BLOCK_LIGHT_LEVEL, Light::MIN_LIGHT_LEVEL, Light::MAX_LIGHT_LEVEL));
 		});
 		$this->map(Ids::LIGHT_BLUE_GLAZED_TERRACOTTA, fn(Reader $in) => Helper::decodeGlazedTerracotta(DyeColor::LIGHT_BLUE(), $in));
 		$this->map(Ids::LIGHT_WEIGHTED_PRESSURE_PLATE, fn(Reader $in) => Helper::decodeWeightedPressurePlate(Blocks::WEIGHTED_PRESSURE_PLATE_LIGHT(), $in));
