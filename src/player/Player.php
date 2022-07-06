@@ -55,6 +55,7 @@ use pocketmine\world\World;
 use pocketmine\entity\Human;
 use pocketmine\item\Durable;
 use pocketmine\math\Vector3;
+use function morton2d_encode;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\lang\Language;
@@ -645,7 +646,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 */
 	public function getItemCooldownExpiry(Item $item) : int{
 		$this->checkItemCooldowns();
-		return $this->usedItemsCooldown[$item->getId()] ?? 0;
+		return $this->usedItemsCooldown[morton2d_encode($item->getTypeId(), $item->computeTypeData())] ?? 0;
 	}
 
 	/**
@@ -653,7 +654,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 */
 	public function hasItemCooldown(Item $item) : bool{
 		$this->checkItemCooldowns();
-		return isset($this->usedItemsCooldown[$item->getId()]);
+		return isset($this->usedItemsCooldown[morton2d_encode($item->getTypeId(), $item->computeTypeData())]);
 	}
 
 	/**
@@ -662,7 +663,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function resetItemCooldown(Item $item, ?int $ticks = null) : void{
 		$ticks = $ticks ?? $item->getCooldownTicks();
 		if($ticks > 0){
-			$this->usedItemsCooldown[$item->getId()] = $this->server->getTick() + $ticks;
+			$this->usedItemsCooldown[morton2d_encode($item->getTypeId(), $item->computeTypeData())] = $this->server->getTick() + $ticks;
 		}
 	}
 
