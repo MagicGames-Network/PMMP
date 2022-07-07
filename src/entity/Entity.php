@@ -270,7 +270,7 @@ abstract class Entity{
 
 	public function setScale(float $value) : void{
 		if($value <= 0){
-			throw new \InvalidArgumentException("Scale must be greater than 0");
+			$this->scale = 1.0;
 		}
 		$this->scale = $value;
 		$this->setSize($this->getInitialSizeInfo()->scale($value));
