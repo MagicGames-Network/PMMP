@@ -426,7 +426,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function setAllowFlight(bool $value) : void{
 		if($this->allowFlight !== $value){
 			$this->allowFlight = $value;
-			$this->getNetworkSession()->syncAdventureSettings($this);
+			$this->getNetworkSession()->syncAbilities($this);
 		}
 	}
 
@@ -437,7 +437,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function setHasBlockCollision(bool $value) : void{
 		if($this->blockCollision !== $value){
 			$this->blockCollision = $value;
-			$this->getNetworkSession()->syncAdventureSettings($this);
+			$this->getNetworkSession()->syncAbilities($this);
 		}
 	}
 
@@ -449,7 +449,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		if($this->flying !== $value){
 			$this->flying = $value;
 			$this->resetFallDistance();
-			$this->getNetworkSession()->syncAdventureSettings($this);
+			$this->getNetworkSession()->syncAbilities($this);
 		}
 	}
 
@@ -460,7 +460,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	public function setAutoJump(bool $value) : void{
 		if($this->autoJump !== $value){
 			$this->autoJump = $value;
-			$this->getNetworkSession()->syncAdventureSettings($this);
+			$this->getNetworkSession()->syncAdventureSettings();
 		}
 	}
 
