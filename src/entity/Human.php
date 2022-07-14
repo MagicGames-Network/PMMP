@@ -65,7 +65,7 @@ use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\types\entity\StringMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
@@ -468,7 +468,6 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 		$player->getNetworkSession()->sendDataPacket(AddPlayerPacket::create(
 			$this->getUniqueId(),
 			$this->getName(),
-			$this->getId(), //TODO: actor unique ID
 			$this->getId(),
 			"",
 			$this->location->asVector3(),
@@ -479,7 +478,7 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 			ItemStackWrapper::legacy(TypeConverter::getInstance()->coreItemStackToNet($this->getInventory()->getItemInHand())),
 			GameMode::SURVIVAL,
 			$this->getAllNetworkData(),
-			AdventureSettingsPacket::create(0, 0, 0, 0, 0, $this->getId()), //TODO
+			UpdateAbilitiesPacket::create(0, 0, $this->getId() /* TODO: this should be unique ID */, []),
 			[], //TODO: entity links
 			"", //device ID (we intentionally don't send this - secvuln)
 			DeviceOS::UNKNOWN //we intentionally don't send this (secvuln)
