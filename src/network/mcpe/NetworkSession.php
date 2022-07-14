@@ -23,117 +23,121 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe;
 
-use function time;
-use function count;
-use function ksort;
-use function strlen;
-use function substr;
-use function bin2hex;
-use function ucfirst;
-use function in_array;
-use pocketmine\Server;
-use const SORT_NUMERIC;
-use function array_map;
-use function get_class;
-use function strcasecmp;
-use function strtolower;
-use function json_encode;
-use pocketmine\form\Form;
-use function array_values;
-use function base64_encode;
-use pocketmine\utils\Utils;
-use pocketmine\entity\Human;
-use pocketmine\math\Vector3;
-use pocketmine\entity\Entity;
-use pocketmine\entity\Living;
-use pocketmine\player\Player;
-use const JSON_THROW_ON_ERROR;
-use pocketmine\world\Position;
-use pocketmine\player\GameMode;
-use pocketmine\network\mcpe\protocol\ToastRequestPacket;
-use pocketmine\timings\Timings;
-use pocketmine\utils\ObjectSet;
-use pocketmine\entity\Attribute;
-use pocketmine\utils\TextFormat;
-use pocketmine\lang\Translatable;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\player\PlayerInfo;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\player\UsedChunkStatus;
 use pocketmine\data\bedrock\EffectIdMap;
-use pocketmine\lang\KnownTranslationKeys;
-use pocketmine\player\XboxLivePlayerInfo;
-use pocketmine\utils\AssumptionFailedError;
+use pocketmine\entity\Attribute;
 use pocketmine\entity\effect\EffectInstance;
-use pocketmine\lang\KnownTranslationFactory;
-use pocketmine\network\mcpe\protocol\Packet;
-use pocketmine\network\mcpe\cache\ChunkCache;
-use pocketmine\network\NetworkSessionManager;
-use pocketmine\permission\DefaultPermissions;
-use pocketmine\network\PacketHandlingException;
-use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\network\mcpe\protocol\PacketPool;
-use pocketmine\network\mcpe\protocol\TextPacket;
-use pocketmine\network\mcpe\protocol\EmotePacket;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\handler\PacketHandler;
-use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\network\mcpe\compression\Compressor;
-use pocketmine\network\mcpe\protocol\SetTimePacket;
-use pocketmine\network\mcpe\protocol\SetTitlePacket;
-use pocketmine\network\mcpe\protocol\TransferPacket;
-use pocketmine\network\mcpe\protocol\MobEffectPacket;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Human;
+use pocketmine\entity\Living;
 use pocketmine\event\player\PlayerDuplicateLoginEvent;
-use pocketmine\network\mcpe\protocol\DisconnectPacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\PlayerListPacket;
-use pocketmine\network\mcpe\protocol\PlayStatusPacket;
-use pocketmine\network\mcpe\handler\DeathPacketHandler;
-use pocketmine\network\mcpe\handler\LoginPacketHandler;
-use pocketmine\network\mcpe\protocol\ClientboundPacket;
-use pocketmine\network\mcpe\protocol\RemoveActorPacket;
-use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use pocketmine\network\mcpe\handler\InGamePacketHandler;
-use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
-use pocketmine\network\mcpe\protocol\SetActorDataPacket;
-use pocketmine\network\mcpe\protocol\types\DimensionIds;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\encryption\EncryptionContext;
-use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
-use pocketmine\network\mcpe\protocol\TakeItemActorPacket;
-use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\handler\PreSpawnPacketHandler;
-use pocketmine\network\mcpe\encryption\DecryptionException;
-use pocketmine\network\mcpe\handler\HandshakePacketHandler;
-use pocketmine\network\mcpe\protocol\PacketDecodeException;
-use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
-use pocketmine\network\mcpe\protocol\ModalFormRequestPacket;
-use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
-use pocketmine\network\mcpe\protocol\SetSpawnPositionPacket;
-use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\form\Form;
+use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\lang\KnownTranslationKeys;
+use pocketmine\lang\Translatable;
+use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\mcpe\cache\ChunkCache;
 use pocketmine\network\mcpe\compression\CompressBatchPromise;
-use pocketmine\network\mcpe\convert\GlobalItemTypeDictionary;
-use pocketmine\network\mcpe\encryption\PrepareEncryptionTask;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
-use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
-use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
-use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
-use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
-use pocketmine\network\mcpe\protocol\ChunkRadiusUpdatedPacket;
+use pocketmine\network\mcpe\compression\Compressor;
 use pocketmine\network\mcpe\compression\DecompressionException;
+use pocketmine\network\mcpe\convert\GlobalItemTypeDictionary;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\convert\TypeConverter;
+use pocketmine\network\mcpe\encryption\DecryptionException;
+use pocketmine\network\mcpe\encryption\EncryptionContext;
+use pocketmine\network\mcpe\encryption\PrepareEncryptionTask;
+use pocketmine\network\mcpe\handler\DeathPacketHandler;
+use pocketmine\network\mcpe\handler\HandshakePacketHandler;
+use pocketmine\network\mcpe\handler\InGamePacketHandler;
+use pocketmine\network\mcpe\handler\LoginPacketHandler;
+use pocketmine\network\mcpe\handler\PacketHandler;
+use pocketmine\network\mcpe\handler\PreSpawnPacketHandler;
 use pocketmine\network\mcpe\handler\ResourcePacksPacketHandler;
 use pocketmine\network\mcpe\handler\SpawnResponsePacketHandler;
+use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
+use pocketmine\network\mcpe\protocol\ChunkRadiusUpdatedPacket;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
+use pocketmine\network\mcpe\protocol\DisconnectPacket;
+use pocketmine\network\mcpe\protocol\EmotePacket;
+use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
+use pocketmine\network\mcpe\protocol\MobEffectPacket;
+use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
+use pocketmine\network\mcpe\protocol\ModalFormRequestPacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
+use pocketmine\network\mcpe\protocol\Packet;
+use pocketmine\network\mcpe\protocol\PacketDecodeException;
+use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\protocol\PlayerListPacket;
+use pocketmine\network\mcpe\protocol\PlayStatusPacket;
+use pocketmine\network\mcpe\protocol\RemoveActorPacket;
+use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
+use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use pocketmine\network\mcpe\protocol\serializer\PacketSerializerContext;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
+use pocketmine\network\mcpe\protocol\ServerToClientHandshakePacket;
+use pocketmine\network\mcpe\protocol\SetActorDataPacket;
+use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\SetSpawnPositionPacket;
+use pocketmine\network\mcpe\protocol\SetTimePacket;
+use pocketmine\network\mcpe\protocol\SetTitlePacket;
+use pocketmine\network\mcpe\protocol\TakeItemActorPacket;
+use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\TransferPacket;
+use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\command\CommandData;
 use pocketmine\network\mcpe\protocol\types\command\CommandEnum;
-use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
-use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
-use pocketmine\network\mcpe\protocol\ServerToClientHandshakePacket;
-use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
-use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
-use pocketmine\network\mcpe\protocol\serializer\PacketSerializerContext;
+use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
+use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
+use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
+use pocketmine\network\mcpe\protocol\types\UpdateAbilitiesPacketLayer;
+use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
+use pocketmine\network\mcpe\protocol\UpdateAdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
+use pocketmine\network\NetworkSessionManager;
+use pocketmine\network\PacketHandlingException;
+use pocketmine\permission\DefaultPermissionNames;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\player\GameMode;
+use pocketmine\player\Player;
+use pocketmine\player\PlayerInfo;
+use pocketmine\player\UsedChunkStatus;
+use pocketmine\player\XboxLivePlayerInfo;
+use pocketmine\Server;
+use pocketmine\timings\Timings;
+use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\ObjectSet;
+use pocketmine\utils\TextFormat;
+use pocketmine\utils\Utils;
+use pocketmine\world\Position;
+use function array_map;
+use function array_values;
+use function base64_encode;
+use function bin2hex;
+use function count;
+use function get_class;
+use function in_array;
+use function json_encode;
+use function ksort;
+use function strcasecmp;
+use function strlen;
+use function strtolower;
+use function substr;
+use function time;
+use function ucfirst;
+use const JSON_THROW_ON_ERROR;
+use const SORT_NUMERIC;
+use pocketmine\network\mcpe\protocol\ToastRequestPacket;
 
 class NetworkSession{
 	private \PrefixedLogger $logger;
@@ -197,9 +201,6 @@ class NetworkSession{
 			$this->server,
 			$this,
 			function(PlayerInfo $info) : void{
-				if (($Waterdog_IP = $info->getExtraData()["Waterdog_IP"] ?? "") !== "") {
-					$this->ip = (string) $Waterdog_IP;
-				}
 				$this->info = $info;
 				$this->logger->info("Player: " . TextFormat::AQUA . $info->getUsername() . TextFormat::RESET);
 				$this->logger->setPrefix($this->getLogPrefix());
@@ -254,8 +255,8 @@ class NetworkSession{
 
 		$permissionHooks = $this->player->getPermissionRecalculationCallbacks();
 		$permissionHooks->add($permHook = function() : void{
-			$this->logger->debug("Syncing available commands and adventure settings due to permission recalculation");
-			$this->syncAdventureSettings($this->player);
+			$this->logger->debug("Syncing available commands and abilities/permissions due to permission recalculation");
+			$this->syncAbilities($this->player);
 			$this->syncAvailableCommands();
 		});
 		$this->disposeHooks->add(static function() use ($permissionHooks, $permHook) : void{
@@ -720,7 +721,7 @@ class NetworkSession{
 		$this->syncAttributes($this->player, $this->player->getAttributeMap()->getAll());
 		$this->player->sendData(null);
 
-		$this->syncAdventureSettings($this->player);
+		$this->syncAbilities($this->player);
 		$this->invManager->syncAll();
 		$this->setHandler(new InGamePacketHandler($this->player, $this, $this->invManager));
 	}
@@ -770,37 +771,60 @@ class NetworkSession{
 	public function syncGameMode(GameMode $mode, bool $isRollback = false) : void{
 		$this->sendDataPacket(SetPlayerGameTypePacket::create(TypeConverter::getInstance()->coreGameModeToProtocol($mode)));
 		if($this->player !== null){
-			$this->syncAdventureSettings($this->player);
+			$this->syncAbilities($this->player);
+			$this->syncAdventureSettings(); //TODO: we might be able to do this with the abilities packet alone
 		}
 		if(!$isRollback && $this->invManager !== null){
 			$this->invManager->syncCreative();
 		}
 	}
 
-	/**
-	 * TODO: make this less specialized
-	 */
-	public function syncAdventureSettings(Player $for) : void{
+	public function syncAbilities(Player $for) : void{
 		$isOp = $for->hasPermission(DefaultPermissions::ROOT_OPERATOR);
-		$pk = AdventureSettingsPacket::create(
-			0,
-			$isOp ? AdventureSettingsPacket::PERMISSION_OPERATOR : AdventureSettingsPacket::PERMISSION_NORMAL,
-			0,
+
+		//ALL of these need to be set for the base layer, otherwise the client will cry
+		$boolAbilities = [
+			UpdateAbilitiesPacketLayer::ABILITY_ALLOW_FLIGHT => $for->getAllowFlight(),
+			UpdateAbilitiesPacketLayer::ABILITY_FLYING => $for->isFlying(),
+			UpdateAbilitiesPacketLayer::ABILITY_NO_CLIP => !$for->hasBlockCollision(),
+			UpdateAbilitiesPacketLayer::ABILITY_OPERATOR => $isOp,
+			UpdateAbilitiesPacketLayer::ABILITY_TELEPORT => $for->hasPermission(DefaultPermissionNames::COMMAND_TELEPORT),
+			UpdateAbilitiesPacketLayer::ABILITY_INVULNERABLE => $for->isCreative(),
+			UpdateAbilitiesPacketLayer::ABILITY_MUTED => false,
+			UpdateAbilitiesPacketLayer::ABILITY_WORLD_BUILDER => false,
+			UpdateAbilitiesPacketLayer::ABILITY_INFINITE_RESOURCES => !$for->hasFiniteResources(),
+			UpdateAbilitiesPacketLayer::ABILITY_LIGHTNING => false,
+			UpdateAbilitiesPacketLayer::ABILITY_BUILD => !$for->isSpectator(),
+			UpdateAbilitiesPacketLayer::ABILITY_MINE => !$for->isSpectator(),
+			UpdateAbilitiesPacketLayer::ABILITY_DOORS_AND_SWITCHES => !$for->isSpectator(),
+			UpdateAbilitiesPacketLayer::ABILITY_OPEN_CONTAINERS => !$for->isSpectator(),
+			UpdateAbilitiesPacketLayer::ABILITY_ATTACK_PLAYERS => !$for->isSpectator(),
+			UpdateAbilitiesPacketLayer::ABILITY_ATTACK_MOBS => !$for->isSpectator(),
+		];
+
+		$this->sendDataPacket(UpdateAbilitiesPacket::create(
+			$isOp ? CommandPermissions::OPERATOR : CommandPermissions::NORMAL,
 			$isOp ? PlayerPermissions::OPERATOR : PlayerPermissions::MEMBER,
-			0,
-			$for->getId()
-		);
+			$for->getId(),
+			[
+				//TODO: dynamic flying speed! FINALLY!!!!!!!!!!!!!!!!!
+				new UpdateAbilitiesPacketLayer(UpdateAbilitiesPacketLayer::LAYER_BASE, $boolAbilities, 0.05, 0.1),
+			]
+		));
+	}
 
-		$pk->setFlag(AdventureSettingsPacket::WORLD_IMMUTABLE, $for->isSpectator());
-		$pk->setFlag(AdventureSettingsPacket::NO_PVP, $for->isSpectator());
-		$pk->setFlag(AdventureSettingsPacket::AUTO_JUMP, $for->hasAutoJump());
-		$pk->setFlag(AdventureSettingsPacket::ALLOW_FLIGHT, $for->getAllowFlight());
-		$pk->setFlag(AdventureSettingsPacket::NO_CLIP, !$for->hasBlockCollision());
-		$pk->setFlag(AdventureSettingsPacket::FLYING, $for->isFlying());
-
-		//TODO: permission flags
-
-		$this->sendDataPacket($pk);
+	public function syncAdventureSettings() : void{
+		if($this->player === null){
+			throw new \LogicException("Cannot sync adventure settings for a player that is not yet created");
+		}
+		//everything except auto jump is handled via UpdateAbilitiesPacket
+		$this->sendDataPacket(UpdateAdventureSettingsPacket::create(
+			noAttackingMobs: false,
+			noAttackingPlayers: false,
+			worldImmutable: false,
+			showNameTags: true,
+			autoJump: $this->player->hasAutoJump()
+		));
 	}
 
 	/**
