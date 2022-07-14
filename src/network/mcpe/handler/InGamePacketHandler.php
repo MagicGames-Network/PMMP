@@ -27,6 +27,7 @@ use function max;
 use function fmod;
 use function trim;
 use function count;
+use function is_bool;
 use function is_nan;
 use function strlen;
 use function strpos;
@@ -58,6 +59,7 @@ use pocketmine\item\WritableBook;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\world\format\Chunk;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\RequestAbilityPacket;
 use pocketmine\block\utils\SignText;
 use pocketmine\item\WritableBookPage;
 use pocketmine\entity\InvalidSkinException;
@@ -614,6 +616,10 @@ class InGamePacketHandler extends PacketHandler
 			case PlayerAction::CREATIVE_PLAYER_DESTROY_BLOCK:
 				//TODO: do we need to handle this?
 				break;
+			case PlayerAction::START_ITEM_USE_ON:
+			case PlayerAction::STOP_ITEM_USE_ON:
+				//TODO: this has no obvious use and seems only used for analytics in vanilla - ignore it
+				break;
 			default:
 				$this->session->getLogger()->debug("Unhandled/unknown player action type " . $action);
 				return false;
@@ -652,23 +658,7 @@ class InGamePacketHandler extends PacketHandler
 
 	public function handleAdventureSettings(AdventureSettingsPacket $packet): bool
 	{
-		if ($packet->targetActorUniqueId !== $this->player->getId()) {
-			return false; //TODO: operators can change other people's permissions using this
-		}
-
-		$handled = false;
-
-		$isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING);
-		if ($isFlying !== $this->player->isFlying()) {
-			if (!$this->player->toggleFlight($isFlying)) {
-				$this->session->syncAdventureSettings($this->player);
-			}
-			$handled = true;
-		}
-
-		//TODO: check for other changes
-
-		return $handled;
+		return true;
 	}
 
 	public function handleBlockActorData(BlockActorDataPacket $packet): bool
@@ -1013,5 +1003,23 @@ class InGamePacketHandler extends PacketHandler
 	{
 		$this->player->emote($packet->getEmoteId());
 		return true;
+	}
+
+	public function handleRequestAbility(RequestAbilityPacket $packet) : bool{
+		if($packet->getAbilityId() === RequestAbilityPacket::ABILITY_FLYING){
+			$isFlying = $packet->getAbilityValue();
+			if(!is_bool($isFlying)){
+				throw new PacketHandlingException("Flying ability should always have a bool value");
+			}
+			if($isFlying !== $this->player->isFlying()){
+				if(!$this->player->toggleFlight($isFlying)){
+					$this->session->syncAdventureSettings($this->player);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 }
