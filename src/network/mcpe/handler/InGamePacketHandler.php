@@ -591,6 +591,49 @@ class InGamePacketHandler extends PacketHandler
 			case PlayerAction::STOP_SLEEPING:
 				$this->player->stopSleep();
 				break;
+			case PlayerAction::JUMP:
+				// DO NOT HANDLE THIS! IT WILL CAUSE ISSUES!
+				break;
+			case PlayerAction::START_SPRINT:
+				if(!$this->player->toggleSprint(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SPRINT:
+				if(!$this->player->toggleSprint(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_SNEAK:
+				if(!$this->player->toggleSneak(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SNEAK:
+				if(!$this->player->toggleSneak(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_GLIDE:
+				if(!$this->player->toggleGlide(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_GLIDE:
+				if(!$this->player->toggleGlide(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::START_SWIMMING:
+				if(!$this->player->toggleSwim(true)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
+			case PlayerAction::STOP_SWIMMING:
+				if(!$this->player->toggleSwim(false)){
+					$this->player->sendData([$this->player]);
+				}
+				return true;
 			case PlayerAction::CRACK_BREAK:
 				self::validateFacing($face);
 				$this->player->continueBreakBlock($pos, $face);
