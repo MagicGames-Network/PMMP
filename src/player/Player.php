@@ -277,8 +277,6 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer
 
 	protected ?SurvivalBlockBreakHandler $blockBreakHandler = null;
 
-	public int $jump = 0;
-
 	public function __construct(Server $server, NetworkSession $session, PlayerInfo $playerInfo, bool $authenticated, Location $spawnLocation, ?CompoundTag $namedtag)
 	{
 		$username = TextFormat::clean($playerInfo->getUsername());
@@ -1377,7 +1375,6 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer
 
 	public function jump(): void
 	{
-		$this->jump = time();
 		(new PlayerJumpEvent($this))->call();
 		parent::jump();
 	}
