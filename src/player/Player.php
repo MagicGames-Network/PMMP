@@ -39,6 +39,7 @@ use function strpos;
 use function substr;
 use function explode;
 use const PHP_INT_MAX;
+use function array_shift;
 use pocketmine\Server;
 use function array_map;
 use function get_class;
