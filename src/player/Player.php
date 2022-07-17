@@ -89,6 +89,7 @@ use pocketmine\permission\PermissibleBase;
 use pocketmine\world\sound\ItemBreakSound;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\utils\AssumptionFailedError;
+use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -1450,6 +1451,39 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		return true;
 	}
 
+		/**
+	 * @param Item[] $extraReturnedItems
+	 */
+	private function returnItemsFromAction(Item $oldHeldItem, Item $newHeldItem, array $extraReturnedItems) : void{
+		$heldItemChanged = false;
+		if($this->hasFiniteResources()){
+			if(!$newHeldItem->equalsExact($oldHeldItem) && $oldHeldItem->equalsExact($this->inventory->getItemInHand())){
+				if($newHeldItem instanceof Durable && $newHeldItem->isBroken()){
+					$this->broadcastSound(new ItemBreakSound());
+				}
+				$this->inventory->setItemInHand($newHeldItem);
+				$heldItemChanged = true;
+			}
+		}else{
+			$newHeldItem = $oldHeldItem;
+		}
+
+		if($heldItemChanged && count($extraReturnedItems) > 0 && $newHeldItem->isNull()){
+			$this->inventory->setItemInHand(array_shift($extraReturnedItems));
+		}
+		foreach($this->inventory->addItem(...$extraReturnedItems) as $drop){
+			//TODO: we can't generate a transaction for this since the items aren't coming from an inventory :(
+			$ev = new PlayerDropItemEvent($this, $drop);
+			if($this->isSpectator()){
+				$ev->cancel();
+			}
+			$ev->call();
+			if(!$ev->isCancelled()){
+				$this->dropItem($drop);
+			}
+		}
+	}
+
 	/**
 	 * Activates the item in hand, for example throwing a projectile.
 	 *
@@ -1471,18 +1505,14 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			return false;
 		}
 
-		$result = $item->onClickAir($this, $directionVector);
+		$returnedItems = [];
+		$result = $item->onClickAir($this, $directionVector, $returnedItems);
 		if($result->equals(ItemUseResult::FAIL())){
 			return false;
 		}
 
 		$this->resetItemCooldown($item);
-		if($this->hasFiniteResources() && !$item->equalsExact($oldItem) && $oldItem->equalsExact($this->inventory->getItemInHand())){
-			if($item instanceof Durable && $item->isBroken()){
-				$this->broadcastSound(new ItemBreakSound());
-			}
-			$this->inventory->setItemInHand($item);
-		}
+		$this->returnItemsFromAction($oldItem, $item, $returnedItems);
 
 		$this->setUsingItem($item instanceof Releasable && $item->canStartUsingItem($this));
 
@@ -1512,11 +1542,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			$this->setUsingItem(false);
 			$this->resetItemCooldown($slot);
 
-			if($this->hasFiniteResources() && $oldItem->equalsExact($this->inventory->getItemInHand())){
-				$slot->pop();
-				$this->inventory->setItemInHand($slot);
-				$this->inventory->addItem($slot->getResidue());
-			}
+			$slot->pop();
+			$this->returnItemsFromAction($oldItem, $slot, [$slot->getResidue()]);
 
 			return true;
 		}
@@ -1538,15 +1565,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 
 			$oldItem = clone $item;
 
-			$result = $item->onReleaseUsing($this);
+			$returnedItems = [];
+			$result = $item->onReleaseUsing($this, $returnedItems);
 			if($result->equals(ItemUseResult::SUCCESS())){
 				$this->resetItemCooldown($item);
-				if(!$item->equalsExact($oldItem) && $oldItem->equalsExact($this->inventory->getItemInHand())){
-					if($item instanceof Durable && $item->isBroken()){
-						$this->broadcastSound(new ItemBreakSound());
-					}
-					$this->inventory->setItemInHand($item);
-				}
+				$this->returnItemsFromAction($oldItem, $item, $returnedItems);
 				return true;
 			}
 
@@ -1659,14 +1682,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			$this->stopBreakBlock($pos);
 			$item = $this->inventory->getItemInHand();
 			$oldItem = clone $item;
-			if($this->getWorld()->useBreakOn($pos, $item, $this, true)){
-				if($this->hasFiniteResources() && !$item->equalsExact($oldItem) && $oldItem->equalsExact($this->inventory->getItemInHand())){
-					if($item instanceof Durable && $item->isBroken()){
-						$this->broadcastSound(new ItemBreakSound());
-					}
-					$this->inventory->setItemInHand($item);
-				}
-				$this->hungerManager->exhaust(0.005, PlayerExhaustEvent::CAUSE_MINING);
+			$returnedItems = [];
+			if($this->getWorld()->useItemOn($pos, $item, $face, $clickOffset, $this, true, $returnedItems)){
+				$this->returnItemsFromAction($oldItem, $item, $returnedItems);
 				return true;
 			}
 		}else{
@@ -1769,12 +1787,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		if($this->isAlive()){
 			//reactive damage like thorns might cause us to be killed by attacking another mob, which
 			//would mean we'd already have dropped the inventory by the time we reached here
-			if($heldItem->onAttackEntity($entity) && $this->hasFiniteResources() && $oldItem->equalsExact($this->inventory->getItemInHand())){ //always fire the hook, even if we are survival
-				if($heldItem instanceof Durable && $heldItem->isBroken()){
-					$this->broadcastSound(new ItemBreakSound());
-				}
-				$this->inventory->setItemInHand($heldItem);
-			}
+			$returnedItems = [];
+			$heldItem->onAttackEntity($entity, $returnedItems);
+			$this->returnItemsFromAction($oldItem, $heldItem, $returnedItems);
 
 			$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_ATTACK);
 		}
